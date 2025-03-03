@@ -41,9 +41,69 @@
         <label for="commentaire-lieu">4 – Commentaire :</label>
         <textarea id="commentaire-lieu" name="commentaire-lieu" rows="4"></textarea>
 
-        <!-- Ajoutez ici le reste de votre formulaire -->
+        <!-- Section 2 : La formation et son contenu -->
+        <h2>La formation et son contenu</h2>
 
+        <label for="scenarios">1 – Quel est votre niveau de satisfaction vis-à-vis des scénarios proposés ?</label>
+        <select id="scenarios" name="scenarios" required>
+            <option value="Très satisfait">Très satisfait</option>
+            <option value="Plutôt satisfait">Plutôt satisfait</option>
+            <option value="Plutôt insatisfait">Plutôt insatisfait</option>
+            <option value="Très insatisfait">Très insatisfait</option>
+        </select>
+
+        <label for="mises-en-situation">2 – Les mises en situation vous ont-elles semblé pertinentes ?</label>
+        <textarea id="mises-en-situation" name="mises-en-situation" rows="4"></textarea>
+
+        <label for="difficulté">3 – Comment évaluez-vous le niveau de difficulté de la formation ?</label>
+        <select id="difficulté" name="difficulté" required>
+            <option value="Très difficile">Très difficile</option>
+            <option value="Difficile">Difficile</option>
+            <option value="Facile">Facile</option>
+            <option value="Très facile">Très facile</option>
+        </select>
+
+        <label for="evolution-difficulté">4 – Que pensez-vous de l’évolution du niveau de difficulté durant la journée ?</label>
+        <select id="evolution-difficulté" name="evolution-difficulté" required>
+            <option value="Très satisfait">Très satisfait</option>
+            <option value="Plutôt satisfait">Plutôt satisfait</option>
+            <option value="Plutôt insatisfait">Plutôt insatisfait</option>
+            <option value="Très insatisfait">Très insatisfait</option>
+        </select>
+
+        <label for="attentes">5 – La formation a-t-elle répondu à vos attentes ?</label>
+        <select id="attentes" name="attentes" required>
+            <option value="Très satisfait">Très satisfait</option>
+            <option value="Plutôt satisfait">Plutôt satisfait</option>
+            <option value="Plutôt insatisfait">Plutôt insatisfait</option>
+            <option value="Très insatisfait">Très insatisfait</option>
+        </select>
+
+        <!-- Section 3 : Les formateurs -->
+        <h2>Les formateurs</h2>
+
+        <label for="pédagogie">1 – Globalement, comment évaluez-vous la pédagogie utilisée ?</label>
+        <select id="pédagogie" name="pédagogie" required>
+            <option value="Très satisfait">Très satisfait</option>
+            <option value="Plutôt satisfait">Plutôt satisfait</option>
+            <option value="Plutôt insatisfait">Plutôt insatisfait</option>
+            <option value="Très insatisfait">Très insatisfait</option>
+        </select>
+
+        <label for="qualité-réponses">2 – Qu’avez-vous pensé de la qualité des réponses apportées ?</label>
+        <select id="qualité-réponses" name="qualité-réponses" required>
+            <option value="Très satisfait">Très satisfait</option>
+            <option value="Plutôt satisfait">Plutôt satisfait</option>
+            <option value="Plutôt insatisfait">Plutôt insatisfait</option>
+            <option value="Très insatisfait">Très insatisfait</option>
+        </select>
+
+        <label for="commentaire-libre">3 – Commentaire libre :</label>
+        <textarea id="commentaire-libre" name="commentaire-libre" rows="4"></textarea>
+
+        <!-- Bouton de soumission -->
         <button type="submit">Envoyer</button>
     </form>
 </body>
 </html>
+
