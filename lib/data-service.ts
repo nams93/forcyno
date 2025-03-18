@@ -1,0 +1,192 @@
+import type { Response } from "@/types/dashboard"
+
+// Données de démonstration pour le tableau de bord
+const demoResponses: Response[] = [
+  {
+    id: "1",
+    lieuGlobal: "Très satisfait",
+    lieuAdapte: "Oui",
+    lieuRealite: "Oui",
+    commentaireLieu: "Salle bien équipée et confortable",
+    scenarios: "Très satisfait",
+    misesEnSituation: "Les mises en situation étaient très réalistes et pertinentes",
+    difficulte: "Difficile",
+    evolutionDifficulte: "Bien équilibré",
+    rythme: "Correct",
+    duree: "Correct",
+    attentes: "Oui",
+    pedagogie: "Très bien",
+    qualiteReponses: "Très bien",
+    disponibiliteFormateurs: "Très disponible",
+    satisfactionFormation: "Oui",
+    commentaireLibre: "Formation très enrichissante, merci !",
+    createdAt: "2023-05-15T10:30:00Z",
+  },
+  {
+    id: "2",
+    lieuGlobal: "Plutôt satisfait",
+    lieuAdapte: "Oui",
+    lieuRealite: "Non",
+    commentaireLieu: "",
+    scenarios: "Plutôt satisfait",
+    misesEnSituation: "",
+    difficulte: "Facile",
+    evolutionDifficulte: "Trop facile",
+    rythme: "Trop lent",
+    duree: "Trop long",
+    attentes: "Oui",
+    pedagogie: "Bien",
+    qualiteReponses: "Bien",
+    disponibiliteFormateurs: "Disponible",
+    satisfactionFormation: "Oui",
+    commentaireLibre: "",
+    createdAt: "2023-05-20T14:15:00Z",
+  },
+  {
+    id: "3",
+    lieuGlobal: "Plutôt insatisfait",
+    lieuAdapte: "Non",
+    lieuRealite: "Non",
+    commentaireLieu: "Salle trop petite et mal ventilée",
+    scenarios: "Plutôt insatisfait",
+    misesEnSituation: "Pas assez de cas pratiques",
+    difficulte: "Très difficile",
+    evolutionDifficulte: "Trop difficile",
+    rythme: "Trop rapide",
+    duree: "Trop court",
+    attentes: "Non",
+    pedagogie: "Moyen",
+    qualiteReponses: "Moyen",
+    disponibiliteFormateurs: "Peu disponible",
+    satisfactionFormation: "Non",
+    commentaireLibre: "Formation trop théorique et pas assez de temps pour pratiquer",
+    createdAt: "2023-06-05T09:45:00Z",
+  },
+  {
+    id: "4",
+    lieuGlobal: "Très satisfait",
+    lieuAdapte: "Oui",
+    lieuRealite: "Oui",
+    commentaireLieu: "",
+    scenarios: "Très satisfait",
+    misesEnSituation: "Excellentes mises en situation",
+    difficulte: "Difficile",
+    evolutionDifficulte: "Bien équilibré",
+    rythme: "Correct",
+    duree: "Correct",
+    attentes: "Oui",
+    pedagogie: "Très bien",
+    qualiteReponses: "Très bien",
+    disponibiliteFormateurs: "Très disponible",
+    satisfactionFormation: "Oui",
+    commentaireLibre: "Formateurs très compétents et à l'écoute",
+    createdAt: "2023-06-10T13:20:00Z",
+  },
+  {
+    id: "5",
+    lieuGlobal: "Plutôt satisfait",
+    lieuAdapte: "Oui",
+    lieuRealite: "Oui",
+    commentaireLieu: "",
+    scenarios: "Plutôt satisfait",
+    misesEnSituation: "",
+    difficulte: "Facile",
+    evolutionDifficulte: "Bien équilibré",
+    rythme: "Correct",
+    duree: "Correct",
+    attentes: "Oui",
+    pedagogie: "Bien",
+    qualiteReponses: "Bien",
+    disponibiliteFormateurs: "Disponible",
+    satisfactionFormation: "Oui",
+    commentaireLibre: "",
+    createdAt: "2023-06-15T11:10:00Z",
+  },
+  {
+    id: "6",
+    lieuGlobal: "Très insatisfait",
+    lieuAdapte: "Non",
+    lieuRealite: "Non",
+    commentaireLieu: "Problèmes techniques constants",
+    scenarios: "Très insatisfait",
+    misesEnSituation: "Pas du tout réalistes",
+    difficulte: "Très difficile",
+    evolutionDifficulte: "Trop difficile",
+    rythme: "Trop rapide",
+    duree: "Trop court",
+    attentes: "Non",
+    pedagogie: "Mauvais",
+    qualiteReponses: "Mauvais",
+    disponibiliteFormateurs: "Pas disponible",
+    satisfactionFormation: "Non",
+    commentaireLibre: "Formation à revoir complètement",
+    createdAt: "2023-06-20T15:30:00Z",
+  },
+  {
+    id: "7",
+    lieuGlobal: "Plutôt satisfait",
+    lieuAdapte: "Oui",
+    lieuRealite: "Non",
+    commentaireLieu: "",
+    scenarios: "Plutôt satisfait",
+    misesEnSituation: "",
+    difficulte: "Difficile",
+    evolutionDifficulte: "Bien équilibré",
+    rythme: "Correct",
+    duree: "Correct",
+    attentes: "Oui",
+    pedagogie: "Bien",
+    qualiteReponses: "Bien",
+    disponibiliteFormateurs: "Disponible",
+    satisfactionFormation: "Oui",
+    commentaireLibre: "",
+    createdAt: "2023-06-25T10:45:00Z",
+  },
+  {
+    id: "8",
+    lieuGlobal: "Très satisfait",
+    lieuAdapte: "Oui",
+    lieuRealite: "Oui",
+    commentaireLieu: "Parfait pour ce type de formation",
+    scenarios: "Très satisfait",
+    misesEnSituation: "Très bien pensées et utiles",
+    difficulte: "Difficile",
+    evolutionDifficulte: "Bien équilibré",
+    rythme: "Correct",
+    duree: "Correct",
+    attentes: "Oui",
+    pedagogie: "Très bien",
+    qualiteReponses: "Très bien",
+    disponibiliteFormateurs: "Très disponible",
+    satisfactionFormation: "Oui",
+    commentaireLibre: "Une des meilleures formations que j'ai suivies",
+    createdAt: "2023-07-01T09:15:00Z",
+  },
+]
+
+// Fonction pour récupérer les réponses
+// Dans un environnement de production, cette fonction se connecterait à une base de données
+export async function getResponses(): Promise<Response[]> {
+  // Simuler un délai de chargement
+  await new Promise((resolve) => setTimeout(resolve, 500))
+
+  return demoResponses
+}
+
+// Fonction pour enregistrer une nouvelle réponse
+export async function saveResponse(data: Omit<Response, "id" | "createdAt">): Promise<Response> {
+  // Simuler un délai d'enregistrement
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
+  const newResponse: Response = {
+    ...data,
+    id: (demoResponses.length + 1).toString(),
+    createdAt: new Date().toISOString(),
+  }
+
+  // Dans un environnement de production, nous sauvegarderions dans une base de données
+  demoResponses.push(newResponse)
+
+  return newResponse
+}
+
