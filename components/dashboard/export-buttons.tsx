@@ -4,11 +4,11 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Download, FileText, Loader2 } from "lucide-react"
+import { Download, Loader2 } from "lucide-react"
 import { exportToPDF } from "@/lib/export-utils"
 import type { Response } from "@/types/dashboard"
 import { exportToCSV } from "@/lib/export-utils"
-import { PowerBIExport } from "./power-bi-export"
+import { PDFReportGenerator } from "@/components/dashboard/pdf-report-generator"
 
 interface ExportButtonsProps {
   responses: Response[]
@@ -49,12 +49,7 @@ export function ExportButtons({ responses, dashboardRef }: ExportButtonsProps) {
         Exporter CSV
       </Button>
 
-      <Button variant="outline" className="gap-2" onClick={handleExportPDF} disabled={isExporting !== null}>
-        {isExporting === "pdf" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-        Exporter PDF
-      </Button>
-
-      <PowerBIExport responses={responses} />
+      <PDFReportGenerator responses={responses} />
     </div>
   )
 }

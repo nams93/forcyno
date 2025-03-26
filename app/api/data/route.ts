@@ -1,16 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getResponses } from "@/lib/data-service"
 
-// Clé API simple pour la sécurité (à remplacer par une solution plus robuste en production)
-const API_KEY = process.env.DATA_API_KEY || "votre-clé-api-secrète"
-
 export async function GET(request: NextRequest) {
-  // Vérifier l'authentification
-  const authHeader = request.headers.get("authorization")
-  if (!authHeader || !authHeader.startsWith("Bearer ") || authHeader.split(" ")[1] !== API_KEY) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
-  }
-
   try {
     // Récupérer les paramètres de requête
     const searchParams = request.nextUrl.searchParams

@@ -5,11 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Copy, Check } from "lucide-react"
-import { Input } from "@/components/ui/input"
 
 export function ApiDocumentation() {
   const [copied, setCopied] = useState<string | null>(null)
-  const [apiKey, setApiKey] = useState("votre-clé-api")
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text)
@@ -20,15 +18,13 @@ export function ApiDocumentation() {
   const baseUrl =
     typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "https://votre-domaine.com"
 
-  const curlExample = `curl "${baseUrl}/api/data" \\
-  -H "Authorization: Bearer ${apiKey}"`
+  const curlExample = `curl "${baseUrl}/api/data"`
 
   const pythonExample = `import requests
 
 url = "${baseUrl}/api/data"
-headers = {"Authorization": "Bearer ${apiKey}"}
 
-response = requests.get(url, headers=headers)
+response = requests.get(url)
 data = response.json()
 
 print(f"Nombre de réponses: {len(data)}")`
@@ -37,9 +33,8 @@ print(f"Nombre de réponses: {len(data)}")`
 library(jsonlite)
 
 url <- "${baseUrl}/api/data"
-headers <- c("Authorization" = paste("Bearer", "${apiKey}"))
 
-response <- GET(url, add_headers(headers))
+response <- GET(url)
 data <- fromJSON(content(response, "text"))
 
 print(paste("Nombre de réponses:", length(data)))`
@@ -53,17 +48,6 @@ print(paste("Nombre de réponses:", length(data)))`
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <label className="text-sm font-medium">Votre clé API</label>
-          <div className="flex gap-2 mt-1">
-            <Input value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Entrez votre clé API" />
-            <Button variant="outline">Générer</Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Cette clé est utilisée pour authentifier vos requêtes à l'API.
-          </p>
-        </div>
-
         <Tabs defaultValue="curl" className="w-full mt-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="curl">cURL</TabsTrigger>

@@ -1,471 +1,596 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { submitFormData } from "@/actions/form-actions"
-
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { toast } from "@/components/ui/use-toast"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const formSchema = z.object({
-  lieuGlobal: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  lieuAdapte: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  lieuRealite: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  commentaireLieu: z.string().optional(),
-  scenarios: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  misesEnSituation: z.string().optional(),
-  difficulte: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  evolutionDifficulte: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  rythme: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  duree: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  attentes: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  pedagogie: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  qualiteReponses: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  disponibiliteFormateurs: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  satisfactionFormation: z.string().min(1, { message: "Veuillez sélectionner une option" }),
-  commentaireLibre: z.string().optional(),
-})
+interface SatisfactionFormProps {
+  onSubmit: (data: any) => void
+}
 
-type FormValues = z.infer<typeof formSchema>
+export function SatisfactionForm({ onSubmit }: SatisfactionFormProps) {
+  // Lieux de la formation
+  const [lieuGlobal, setLieuGlobal] = useState<string>("")
+  const [lieuAdapte, setLieuAdapte] = useState<string>("")
+  const [lieuRealite, setLieuRealite] = useState<string>("")
+  const [commentaireLieu, setCommentaireLieu] = useState<string>("")
 
-export function SatisfactionForm() {
+  // La formation et son contenue
+  const [scenarios, setScenarios] = useState<string>("")
+  const [misesEnSituation, setMisesEnSituation] = useState<string>("")
+  const [difficulte, setDifficulte] = useState<string>("")
+  const [evolutionDifficulte, setEvolutionDifficulte] = useState<string>("")
+  const [rythme, setRythme] = useState<string>("")
+  const [duree, setDuree] = useState<string>("")
+  const [objectifsClairs, setObjectifsClairs] = useState<string>("")
+  const [ameliorationAnalyse, setAmeliorationAnalyse] = useState<string>("")
+  const [articulationExercices, setArticulationExercices] = useState<string>("")
+  const [miseEnSituationSouhaite, setMiseEnSituationSouhaite] = useState<string>("")
+  const [miseEnSituationMoinsInteresse, setMiseEnSituationMoinsInteresse] = useState<string>("")
+  const [horaires, setHoraires] = useState<string>("")
+  const [attentes, setAttentes] = useState<string>("")
+  const [reponseProblematiques, setReponseProblematiques] = useState<string>("")
+  const [applicationMethodes, setApplicationMethodes] = useState<string>("")
+
+  // Les formateurs
+  const [complementariteFormateurs, setComplementariteFormateurs] = useState<string>("")
+  const [pedagogie, setPedagogie] = useState<string>("")
+  const [qualiteReponses, setQualiteReponses] = useState<string>("")
+  const [disponibiliteFormateurs, setDisponibiliteFormateurs] = useState<string>("")
+  const [pertinenceDebriefings, setPertinenceDebriefings] = useState<string>("")
+  const [satisfactionJournee, setSatisfactionJournee] = useState<string>("")
+  const [interetNouvelleFormation, setInteretNouvelleFormation] = useState<string>("")
+  const [commentaireLibre, setCommentaireLibre] = useState<string>("")
+
+  const [session, setSession] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      commentaireLieu: "",
-      misesEnSituation: "",
-      commentaireLibre: "",
-    },
-  })
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
 
-  async function onSubmit(data: FormValues) {
+    if (!session) {
+      newErrors.session = "Veuillez indiquer votre section"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setIsSubmitting(true)
+
     try {
-      await submitFormData(data)
-      toast({
-        title: "Formulaire envoyé",
-        description: "Merci pour votre retour d'expérience !",
+      await onSubmit({
+        // Lieux de la formation
+        lieuGlobal,
+        lieuAdapte,
+        lieuRealite,
+        commentaireLieu,
+
+        // La formation et son contenue
+        scenarios,
+        misesEnSituation,
+        difficulte,
+        evolutionDifficulte,
+        rythme,
+        duree,
+        objectifsClairs,
+        ameliorationAnalyse,
+        articulationExercices,
+        miseEnSituationSouhaite,
+        miseEnSituationMoinsInteresse,
+        horaires,
+        attentes,
+        reponseProblematiques,
+        applicationMethodes,
+
+        // Les formateurs
+        complementariteFormateurs,
+        pedagogie,
+        qualiteReponses,
+        disponibiliteFormateurs,
+        pertinenceDebriefings,
+        satisfactionJournee,
+        interetNouvelleFormation,
+        commentaireLibre,
+
+        session,
+        timestamp: new Date().toISOString(),
       })
-      form.reset()
     } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'envoi du formulaire.",
-        variant: "destructive",
-      })
+      console.error("Erreur lors de la soumission du formulaire:", error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 relative z-10">
-        <Card className="w-full border-blue-200 shadow-md bg-white">
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 border-blue-100">
-              Lieux de la formation
-            </h2>
+    <form onSubmit={handleSubmit}>
+      <Card>
+        <CardContent className="pt-6 space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="session" className="text-base font-medium">
+              Votre section
+            </Label>
+            <Select value={session} onValueChange={setSession}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sélectionnez votre section" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SECTION 1">SECTION 1</SelectItem>
+                <SelectItem value="SECTION 2">SECTION 2</SelectItem>
+                <SelectItem value="SECTION 3">SECTION 3</SelectItem>
+                <SelectItem value="SECTION 4">SECTION 4</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.session && <p className="text-sm text-red-500">{errors.session}</p>}
+          </div>
+
+          {/* Lieux de la formation */}
+          <div>
+            <h2 className="text-xl font-bold mb-4">Lieux de la formation</h2>
 
             <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="lieuGlobal"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>1 – Globalement, qu'avez-vous pensé du lieu de formation ?</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Très satisfait">Très satisfait</SelectItem>
-                        <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
-                        <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
-                        <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  1 – Globalement, qu'avez-vous pensé du lieu de formation ?
+                </Label>
+                <Select value={lieuGlobal} onValueChange={setLieuGlobal}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="lieuAdapte"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>2 – Pensez-vous que les lieux sont adaptés ?</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Oui">Oui</SelectItem>
-                        <SelectItem value="Non">Non</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">2 – Pensez-vous que les lieux sont adaptés ?</Label>
+                <Select value={lieuAdapte} onValueChange={setLieuAdapte}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="lieuRealite"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      3 – Les lieux correspondent-ils à la réalité de votre activité professionnelle ?
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Oui">Oui</SelectItem>
-                        <SelectItem value="Non">Non</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  3 – Les lieux correspondent-ils à la réalité de votre activité professionnelle ?
+                </Label>
+                <Select value={lieuRealite} onValueChange={setLieuRealite}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="commentaireLieu"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>4 – Commentaire :</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Votre commentaire sur les lieux de formation"
-                        className="resize-none border-blue-200"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="commentaire-lieu" className="text-base font-medium">
+                  4 – Commentaire :
+                </Label>
+                <Textarea
+                  id="commentaire-lieu"
+                  placeholder="Votre commentaire..."
+                  value={commentaireLieu}
+                  onChange={(e) => setCommentaireLieu(e.target.value)}
+                  rows={4}
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="w-full border-blue-200 shadow-md bg-white">
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 border-blue-100">
-              La formation et son contenu
-            </h2>
+          <Separator />
+
+          {/* La formation et son contenue */}
+          <div>
+            <h2 className="text-xl font-bold mb-4">La formation et son contenue</h2>
 
             <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="scenarios"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>1 – Niveau de satisfaction vis-à-vis des scénarios proposés :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Très satisfait">Très satisfait</SelectItem>
-                        <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
-                        <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
-                        <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  1– Quel est votre niveau de satisfaction vis-à-vis des scénarios proposés ?
+                </Label>
+                <Select value={scenarios} onValueChange={setScenarios}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="misesEnSituation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>2 – Les mises en situation vous ont-elles semblé pertinentes ?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Votre avis sur les mises en situation"
-                        className="resize-none border-blue-200"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="mises-en-situation" className="text-base font-medium">
+                  2 – Les mises en situation vous ont-elles semblé pertinente ?
+                </Label>
+                <Textarea
+                  id="mises-en-situation"
+                  placeholder="Votre réponse..."
+                  value={misesEnSituation}
+                  onChange={(e) => setMisesEnSituation(e.target.value)}
+                  rows={3}
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="difficulte"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>3 – Niveau de difficulté de la formation :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Très difficile">Très difficile</SelectItem>
-                        <SelectItem value="Difficile">Difficile</SelectItem>
-                        <SelectItem value="Facile">Facile</SelectItem>
-                        <SelectItem value="Très facile">Très facile</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  3 – Comment évaluez-vous le niveau de difficulté de la formation ?
+                </Label>
+                <Select value={difficulte} onValueChange={setDifficulte}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très difficile">Très difficile</SelectItem>
+                    <SelectItem value="Difficile">Difficile</SelectItem>
+                    <SelectItem value="Facile">Facile</SelectItem>
+                    <SelectItem value="Très facile">Très facile</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="evolutionDifficulte"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>4 – Évolution du niveau de difficulté :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Bien équilibré">Bien équilibré</SelectItem>
-                        <SelectItem value="Trop difficile">Trop difficile</SelectItem>
-                        <SelectItem value="Trop facile">Trop facile</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  4 - Que pensez-vous de l'évolution du niveau de difficulté durant la journée ?
+                </Label>
+                <Select value={evolutionDifficulte} onValueChange={setEvolutionDifficulte}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="rythme"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>5 – Rythme de la formation :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Trop lent">Trop lent</SelectItem>
-                        <SelectItem value="Correct">Correct</SelectItem>
-                        <SelectItem value="Trop rapide">Trop rapide</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">5 – Qu'avez-vous pensé du rythme de la formation ?</Label>
+                <Select value={rythme} onValueChange={setRythme}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="duree"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>6 – Durée de la formation :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Trop court">Trop court</SelectItem>
-                        <SelectItem value="Correct">Correct</SelectItem>
-                        <SelectItem value="Trop long">Trop long</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">6 – Que pensez-vous de la durée de la formation ?</Label>
+                <Select value={duree} onValueChange={setDuree}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="attentes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>7 – La formation a-t-elle répondu à vos attentes ?</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Oui">Oui</SelectItem>
-                        <SelectItem value="Non">Non</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  7 – Selon vous, les objectifs de la formation ont-ils été clairement formulés en début de session ?
+                </Label>
+                <Select value={objectifsClairs} onValueChange={setObjectifsClairs}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  9 – Pensez-vous que la formation suivie vous a aidé à améliorer votre analyse opérationnelle ?
+                </Label>
+                <Select value={ameliorationAnalyse} onValueChange={setAmeliorationAnalyse}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  10 – Que pensez-vous de l'articulation entre les phases d'exercices et les débriefings ?
+                </Label>
+                <Select value={articulationExercices} onValueChange={setArticulationExercices}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mise-en-situation-souhaite" className="text-base font-medium">
+                  11 – Quelle mise en situation de la formation auriez-vous souhaité développer ?
+                </Label>
+                <Textarea
+                  id="mise-en-situation-souhaite"
+                  placeholder="Votre réponse..."
+                  value={miseEnSituationSouhaite}
+                  onChange={(e) => setMiseEnSituationSouhaite(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mise-en-situation-moins-interesse" className="text-base font-medium">
+                  12 – Quelle mise en situation vous a le moins intéressé ?
+                </Label>
+                <Textarea
+                  id="mise-en-situation-moins-interesse"
+                  placeholder="Votre réponse..."
+                  value={miseEnSituationMoinsInteresse}
+                  onChange={(e) => setMiseEnSituationMoinsInteresse(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">13 – Que pensez-vous des horaires de la formation</Label>
+                <Select value={horaires} onValueChange={setHoraires}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">14 – La formation a-t-elle répondu à vos attentes ?</Label>
+                <Select value={attentes} onValueChange={setAttentes}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  15 – La formation vous a-telle permis de répondre à des problématiques rencontrées sur le terrain ?
+                </Label>
+                <Select value={reponseProblematiques} onValueChange={setReponseProblematiques}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="application-methodes" className="text-base font-medium">
+                  16 – Avez-vous pu mettre en application les méthodes opérationnelles vue lors de la formation ?
+                </Label>
+                <Textarea
+                  id="application-methodes"
+                  placeholder="Votre réponse..."
+                  value={applicationMethodes}
+                  onChange={(e) => setApplicationMethodes(e.target.value)}
+                  rows={3}
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="w-full border-blue-200 shadow-md bg-white">
-          <CardContent className="pt-6">
-            <h2 className="text-xl font-semibold mb-4 text-blue-800 border-b pb-2 border-blue-100">Les formateurs</h2>
+          <Separator />
+
+          {/* Les formateurs */}
+          <div>
+            <h2 className="text-xl font-bold mb-4">Les formateurs</h2>
 
             <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="pedagogie"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>1 – Évaluation de la pédagogie :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Très bien">Très bien</SelectItem>
-                        <SelectItem value="Bien">Bien</SelectItem>
-                        <SelectItem value="Moyen">Moyen</SelectItem>
-                        <SelectItem value="Mauvais">Mauvais</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  1 – Qu'avez-vous pensé de la complémentarité des responsables de formation ?
+                </Label>
+                <Select value={complementariteFormateurs} onValueChange={setComplementariteFormateurs}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="qualiteReponses"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>2 – Qualité des réponses apportées :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Très bien">Très bien</SelectItem>
-                        <SelectItem value="Bien">Bien</SelectItem>
-                        <SelectItem value="Moyen">Moyen</SelectItem>
-                        <SelectItem value="Mauvais">Mauvais</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  2 – Globalement, comment évaluez-vous la pédagogie utilisée ?
+                </Label>
+                <Select value={pedagogie} onValueChange={setPedagogie}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="disponibiliteFormateurs"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>3 – Disponibilité des formateurs :</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Très disponible">Très disponible</SelectItem>
-                        <SelectItem value="Disponible">Disponible</SelectItem>
-                        <SelectItem value="Peu disponible">Peu disponible</SelectItem>
-                        <SelectItem value="Pas disponible">Pas disponible</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  3 – Qu'avez-vous pensé de la qualité des réponses apportées ?
+                </Label>
+                <Select value={qualiteReponses} onValueChange={setQualiteReponses}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="satisfactionFormation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>4 – Êtes-vous satisfait de cette formation ?</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="border-blue-200">
-                          <SelectValue placeholder="Sélectionnez une option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Oui">Oui</SelectItem>
-                        <SelectItem value="Non">Non</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  4 – Comment évaluez-vous la disponibilité des formateurs ?
+                </Label>
+                <Select value={disponibiliteFormateurs} onValueChange={setDisponibiliteFormateurs}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="commentaireLibre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>5 – Commentaire libre :</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Votre commentaire sur la formation"
-                        className="resize-none border-blue-200"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  5 - Les débriefings après chaque scénario vous ont-ils semblé pertinent ?
+                </Label>
+                <Select value={pertinenceDebriefings} onValueChange={setPertinenceDebriefings}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="satisfaction-journee" className="text-base font-medium">
+                  6 – Etes-vous satisfait de cette journée de formation ?
+                </Label>
+                <Textarea
+                  id="satisfaction-journee"
+                  placeholder="Votre réponse..."
+                  value={satisfactionJournee}
+                  onChange={(e) => setSatisfactionJournee(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base font-medium">
+                  7 – Seriez-vous intéressé pour suivre une nouvelle formation ?
+                </Label>
+                <Select value={interetNouvelleFormation} onValueChange={setInteretNouvelleFormation}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnez votre réponse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Très satisfait">Très satisfait</SelectItem>
+                    <SelectItem value="Plutôt satisfait">Plutôt satisfait</SelectItem>
+                    <SelectItem value="Plutôt insatisfait">Plutôt insatisfait</SelectItem>
+                    <SelectItem value="Très insatisfait">Très insatisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="commentaire-libre" className="text-base font-medium">
+                  8 – Commentaire libre :
+                </Label>
+                <Textarea
+                  id="commentaire-libre"
+                  placeholder="Votre commentaire..."
+                  value={commentaireLibre}
+                  onChange={(e) => setCommentaireLibre(e.target.value)}
+                  rows={4}
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <div className="flex justify-center mt-8">
-          <Button
-            type="submit"
-            size="lg"
-            className="px-8 py-6 text-lg font-semibold shadow-lg bg-blue-800 hover:bg-blue-900"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Envoi en cours..." : "Envoyer le formulaire"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Envoi en cours..." : "Envoyer"}
           </Button>
-        </div>
-      </form>
-    </Form>
+        </CardContent>
+      </Card>
+    </form>
   )
 }
 

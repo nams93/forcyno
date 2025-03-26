@@ -1,16 +1,9 @@
 import type React from "react"
-import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
-import { Toaster } from "@/components/toaster"
+import { Toaster } from "@/components/ui/toaster"
+import { NotificationSystem } from "@/components/dashboard/notification-system"
 
 const inter = Inter({ subsets: ["latin"] })
-
-export const metadata: Metadata = {
-  title: "Formulaire de Satisfaction",
-  description: "Formulaire de satisfaction pour évaluer une formation",
-    generator: 'v0.dev'
-}
 
 export default function RootLayout({
   children,
@@ -19,9 +12,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1A3A72" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-title" content="Satisfaction GPIS" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </head>
       <body className={inter.className}>
         {children}
+        <NotificationSystem />
         <Toaster />
+        <script src="/register-sw.js" defer></script>
       </body>
     </html>
   )
@@ -30,3 +33,7 @@ export default function RootLayout({
 
 
 import './globals.css'
+
+export const metadata = {
+      generator: 'v0.dev'
+    };

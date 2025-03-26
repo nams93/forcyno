@@ -2,19 +2,15 @@
 
 import { useRef, useState, useEffect } from "react"
 import { getDashboardData } from "@/actions/dashboard-actions"
-import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { DashboardStats } from "@/components/dashboard/dashboard-stats"
-import { SatisfactionCharts } from "@/components/dashboard/satisfaction-charts"
-import { ResponsesTable } from "@/components/dashboard/responses-table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DateRangeFilter } from "@/components/dashboard/date-range-filter"
-import { CategoryFilters } from "@/components/dashboard/category-filters"
-import { ExportButtons } from "@/components/dashboard/export-buttons"
-import { PeriodComparisonChart } from "@/components/dashboard/period-comparison"
-import { SavedViews } from "@/components/dashboard/saved-views"
 import type { DateRange } from "react-day-picker"
 import type { Response } from "@/types/dashboard"
 import { filterResponsesByDateRange, filterResponsesByCategory } from "@/lib/dashboard-utils"
+import { QRCodeGenerator } from "@/components/qr-code-generator"
+import { DataManagement } from "@/components/dashboard/data-management"
+import { SatisfactionStats } from "@/components/dashboard/satisfaction-stats"
+import { SectionComparison } from "@/components/dashboard/section-comparison"
+import { ActiveConnections } from "@/components/dashboard/active-connections"
 
 export type DashboardStatsType = {
   totalResponses: number
@@ -30,6 +26,8 @@ export default function DashboardPage() {
   const [satisfactionFilters, setSatisfactionFilters] = useState<string[]>([])
   const [difficulteFilters, setDifficulteFilters] = useState<string[]>([])
   const [pedagogieFilters, setPedagogieFilters] = useState<string[]>([])
+  // Ajouter l'état pour le filtre par section
+  const [sectionFilters, setSectionFilters] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState("charts")
 
   // Charger les données du tableau de bord
@@ -72,6 +70,12 @@ export default function DashboardPage() {
     filteredResponses = filterResponsesByCategory(filteredResponses, "pedagogie", pedagogieFilters)
   }
 
+  // Ajouter le filtre par section dans l'application des filtres
+  // Après les autres filtres par catégorie
+  if (sectionFilters.length > 0) {
+    filteredResponses = filterResponsesByCategory(filteredResponses, "session", sectionFilters)
+  }
+
   // Options pour les filtres de catégorie
   const satisfactionOptions = [
     { value: "Oui", label: "Satisfait" },
@@ -106,56 +110,30 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8" ref={dashboardRef}>
-      <DashboardHeader />
+    <div className="container mx-auto py-6 px-4">
+      <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
 
-      <div className="mt-8 flex flex-col md:flex-row justify-between gap-4">
-        <div className="flex flex-col md:flex-row gap-2">
-          <DateRangeFilter onDateRangeChange={setDateRange} />
-          <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
-            <CategoryFilters
-              title="Satisfaction"
-              options={satisfactionOptions}
-              onFilterChange={setSatisfactionFilters}
-            />
-            <CategoryFilters title="Difficulté" options={difficulteOptions} onFilterChange={setDifficulteFilters} />
-            <CategoryFilters title="Pédagogie" options={pedagogieOptions} onFilterChange={setPedagogieFilters} />
-          </div>
-        </div>
-
-        <div className="flex gap-2 mt-4 md:mt-0">
-          <SavedViews onViewSelect={handleViewSelect} />
-          <ExportButtons responses={filteredResponses} dashboardRef={dashboardRef} />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <QRCodeGenerator />
+        <ActiveConnections />
       </div>
 
-      <div className="mt-8">
-        <DashboardStats
-          stats={{
-            ...data.stats,
-            totalResponses: filteredResponses.length,
-          }}
-        />
-      </div>
-
-      <div className="mt-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="charts">Graphiques</TabsTrigger>
-            <TabsTrigger value="comparison">Comparaison</TabsTrigger>
-            <TabsTrigger value="responses">Réponses</TabsTrigger>
-          </TabsList>
-          <TabsContent value="charts" className="mt-6">
-            <SatisfactionCharts responses={filteredResponses} />
-          </TabsContent>
-          <TabsContent value="comparison" className="mt-6">
-            <PeriodComparisonChart responses={data.responses} />
-          </TabsContent>
-          <TabsContent value="responses" className="mt-6">
-            <ResponsesTable responses={filteredResponses} />
-          </TabsContent>
-        </Tabs>
-      </div>
+      <Tabs defaultValue="stats" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="stats">Statistiques</TabsTrigger>
+          <TabsTrigger value="comparison">Comparaison</TabsTrigger>
+          <TabsTrigger value="data">Gestion des données</TabsTrigger>
+        </TabsList>
+        <TabsContent value="stats">
+          <SatisfactionStats />
+        </TabsContent>
+        <TabsContent value="comparison">
+          <SectionComparison />
+        </TabsContent>
+        <TabsContent value="data">
+          <DataManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

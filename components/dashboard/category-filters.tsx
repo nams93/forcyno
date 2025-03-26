@@ -89,3 +89,81 @@ export function CategoryFilters({ title, options, onFilterChange }: CategoryFilt
   )
 }
 
+// Ajouter un filtre par section
+export function SectionFilter({ onFilterChange }: { onFilterChange: (values: string[]) => void }) {
+  const [open, setOpen] = useState(false)
+  const [selectedValues, setSelectedValues] = useState<string[]>([])
+
+  const options = [
+    { value: "SECTION 1", label: "SECTION 1" },
+    { value: "SECTION 2", label: "SECTION 2" },
+    { value: "SECTION 3", label: "SECTION 3" },
+    { value: "SECTION 4", label: "SECTION 4" },
+  ]
+
+  const handleSelect = (value: string) => {
+    const newSelectedValues = selectedValues.includes(value)
+      ? selectedValues.filter((v) => v !== value)
+      : [...selectedValues, value]
+
+    setSelectedValues(newSelectedValues)
+    onFilterChange(newSelectedValues)
+  }
+
+  const clearFilters = () => {
+    setSelectedValues([])
+    onFilterChange([])
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
+            Section
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[200px] p-0">
+          <Command>
+            <CommandInput placeholder="Rechercher une section..." />
+            <CommandList>
+              <CommandEmpty>Aucun résultat trouvé.</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem key={option.value} value={option.value} onSelect={() => handleSelect(option.value)}>
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedValues.includes(option.value) ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      {selectedValues.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {selectedValues.map((value) => {
+            const option = options.find((o) => o.value === value)
+            return (
+              <Badge key={value} variant="secondary" className="cursor-pointer" onClick={() => handleSelect(value)}>
+                {option?.label}
+                <span className="ml-1">×</span>
+              </Badge>
+            )
+          })}
+          <Badge variant="outline" className="cursor-pointer hover:bg-secondary" onClick={clearFilters}>
+            Effacer tout
+          </Badge>
+        </div>
+      )}
+    </div>
+  )
+}
+

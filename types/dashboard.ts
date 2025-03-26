@@ -1,5 +1,6 @@
 export interface Response {
   id: string
+  session: string
   lieuGlobal: string
   lieuAdapte: string
   lieuRealite: string
@@ -27,5 +28,8 @@ export interface DashboardStats {
   averageDifficulty: number
   commentCount: number
   commentPercentage: number
+  // Nouvelles propriétés optionnelles
+  sectionCount?: number
+  topSection?: string
 }
 

@@ -1,192 +1,129 @@
 import type { Response } from "@/types/dashboard"
+// Importer le nouveau service de stockage
+import { loadResponses, saveResponses as saveResponsesToStorage } from "./data-storage-service"
 
-// Données de démonstration pour le tableau de bord
-const demoResponses: Response[] = [
-  {
-    id: "1",
-    lieuGlobal: "Très satisfait",
-    lieuAdapte: "Oui",
-    lieuRealite: "Oui",
-    commentaireLieu: "Salle bien équipée et confortable",
-    scenarios: "Très satisfait",
-    misesEnSituation: "Les mises en situation étaient très réalistes et pertinentes",
-    difficulte: "Difficile",
-    evolutionDifficulte: "Bien équilibré",
-    rythme: "Correct",
-    duree: "Correct",
-    attentes: "Oui",
-    pedagogie: "Très bien",
-    qualiteReponses: "Très bien",
-    disponibiliteFormateurs: "Très disponible",
-    satisfactionFormation: "Oui",
-    commentaireLibre: "Formation très enrichissante, merci !",
-    createdAt: "2023-05-15T10:30:00Z",
-  },
-  {
-    id: "2",
-    lieuGlobal: "Plutôt satisfait",
-    lieuAdapte: "Oui",
-    lieuRealite: "Non",
-    commentaireLieu: "",
-    scenarios: "Plutôt satisfait",
-    misesEnSituation: "",
-    difficulte: "Facile",
-    evolutionDifficulte: "Trop facile",
-    rythme: "Trop lent",
-    duree: "Trop long",
-    attentes: "Oui",
-    pedagogie: "Bien",
-    qualiteReponses: "Bien",
-    disponibiliteFormateurs: "Disponible",
-    satisfactionFormation: "Oui",
-    commentaireLibre: "",
-    createdAt: "2023-05-20T14:15:00Z",
-  },
-  {
-    id: "3",
-    lieuGlobal: "Plutôt insatisfait",
-    lieuAdapte: "Non",
-    lieuRealite: "Non",
-    commentaireLieu: "Salle trop petite et mal ventilée",
-    scenarios: "Plutôt insatisfait",
-    misesEnSituation: "Pas assez de cas pratiques",
-    difficulte: "Très difficile",
-    evolutionDifficulte: "Trop difficile",
-    rythme: "Trop rapide",
-    duree: "Trop court",
-    attentes: "Non",
-    pedagogie: "Moyen",
-    qualiteReponses: "Moyen",
-    disponibiliteFormateurs: "Peu disponible",
-    satisfactionFormation: "Non",
-    commentaireLibre: "Formation trop théorique et pas assez de temps pour pratiquer",
-    createdAt: "2023-06-05T09:45:00Z",
-  },
-  {
-    id: "4",
-    lieuGlobal: "Très satisfait",
-    lieuAdapte: "Oui",
-    lieuRealite: "Oui",
-    commentaireLieu: "",
-    scenarios: "Très satisfait",
-    misesEnSituation: "Excellentes mises en situation",
-    difficulte: "Difficile",
-    evolutionDifficulte: "Bien équilibré",
-    rythme: "Correct",
-    duree: "Correct",
-    attentes: "Oui",
-    pedagogie: "Très bien",
-    qualiteReponses: "Très bien",
-    disponibiliteFormateurs: "Très disponible",
-    satisfactionFormation: "Oui",
-    commentaireLibre: "Formateurs très compétents et à l'écoute",
-    createdAt: "2023-06-10T13:20:00Z",
-  },
-  {
-    id: "5",
-    lieuGlobal: "Plutôt satisfait",
-    lieuAdapte: "Oui",
-    lieuRealite: "Oui",
-    commentaireLieu: "",
-    scenarios: "Plutôt satisfait",
-    misesEnSituation: "",
-    difficulte: "Facile",
-    evolutionDifficulte: "Bien équilibré",
-    rythme: "Correct",
-    duree: "Correct",
-    attentes: "Oui",
-    pedagogie: "Bien",
-    qualiteReponses: "Bien",
-    disponibiliteFormateurs: "Disponible",
-    satisfactionFormation: "Oui",
-    commentaireLibre: "",
-    createdAt: "2023-06-15T11:10:00Z",
-  },
-  {
-    id: "6",
-    lieuGlobal: "Très insatisfait",
-    lieuAdapte: "Non",
-    lieuRealite: "Non",
-    commentaireLieu: "Problèmes techniques constants",
-    scenarios: "Très insatisfait",
-    misesEnSituation: "Pas du tout réalistes",
-    difficulte: "Très difficile",
-    evolutionDifficulte: "Trop difficile",
-    rythme: "Trop rapide",
-    duree: "Trop court",
-    attentes: "Non",
-    pedagogie: "Mauvais",
-    qualiteReponses: "Mauvais",
-    disponibiliteFormateurs: "Pas disponible",
-    satisfactionFormation: "Non",
-    commentaireLibre: "Formation à revoir complètement",
-    createdAt: "2023-06-20T15:30:00Z",
-  },
-  {
-    id: "7",
-    lieuGlobal: "Plutôt satisfait",
-    lieuAdapte: "Oui",
-    lieuRealite: "Non",
-    commentaireLieu: "",
-    scenarios: "Plutôt satisfait",
-    misesEnSituation: "",
-    difficulte: "Difficile",
-    evolutionDifficulte: "Bien équilibré",
-    rythme: "Correct",
-    duree: "Correct",
-    attentes: "Oui",
-    pedagogie: "Bien",
-    qualiteReponses: "Bien",
-    disponibiliteFormateurs: "Disponible",
-    satisfactionFormation: "Oui",
-    commentaireLibre: "",
-    createdAt: "2023-06-25T10:45:00Z",
-  },
-  {
-    id: "8",
-    lieuGlobal: "Très satisfait",
-    lieuAdapte: "Oui",
-    lieuRealite: "Oui",
-    commentaireLieu: "Parfait pour ce type de formation",
-    scenarios: "Très satisfait",
-    misesEnSituation: "Très bien pensées et utiles",
-    difficulte: "Difficile",
-    evolutionDifficulte: "Bien équilibré",
-    rythme: "Correct",
-    duree: "Correct",
-    attentes: "Oui",
-    pedagogie: "Très bien",
-    qualiteReponses: "Très bien",
-    disponibiliteFormateurs: "Très disponible",
-    satisfactionFormation: "Oui",
-    commentaireLibre: "Une des meilleures formations que j'ai suivies",
-    createdAt: "2023-07-01T09:15:00Z",
-  },
-]
+// Variable pour stocker les réponses en mémoire
+let demoResponses: Response[] = []
 
-// Fonction pour récupérer les réponses
-// Dans un environnement de production, cette fonction se connecterait à une base de données
+// Remplacer la fonction getResponses existante par celle-ci
 export async function getResponses(): Promise<Response[]> {
   // Simuler un délai de chargement
   await new Promise((resolve) => setTimeout(resolve, 500))
 
+  // Charger les données depuis le stockage persistant
+  const storedResponses = loadResponses()
+
+  // Si nous avons des données stockées, les utiliser
+  if (storedResponses.length > 0) {
+    demoResponses = storedResponses
+  }
+  // Sinon, si demoResponses est vide, initialiser avec des données de démonstration
+  else if (demoResponses.length === 0) {
+    // Initialiser avec quelques données de démonstration
+    demoResponses = generateDemoResponses()
+    // Sauvegarder les données de démonstration
+    saveResponsesToStorage(demoResponses)
+  }
+
   return demoResponses
 }
 
-// Fonction pour enregistrer une nouvelle réponse
-export async function saveResponse(data: Omit<Response, "id" | "createdAt">): Promise<Response> {
+// Remplacer la fonction saveResponse existante par celle-ci
+export async function saveResponse(data: Omit<Response, "id" | "createdAt" | "session">): Promise<Response> {
   // Simuler un délai d'enregistrement
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
+  // Récupérer les réponses existantes
+  const responses = await getResponses()
+
+  // Créer une nouvelle réponse avec un ID unique et un timestamp
   const newResponse: Response = {
     ...data,
-    id: (demoResponses.length + 1).toString(),
+    id: generateUniqueId(),
     createdAt: new Date().toISOString(),
+    session: data.session || "SECTION 1", // Valeur par défaut si non spécifiée
   }
 
-  // Dans un environnement de production, nous sauvegarderions dans une base de données
-  demoResponses.push(newResponse)
+  // Ajouter la nouvelle réponse
+  responses.push(newResponse)
+
+  // Sauvegarder toutes les réponses avec le nouveau système
+  saveResponsesToStorage(responses)
+
+  // Mettre à jour la variable en mémoire
+  demoResponses = responses
 
   return newResponse
+}
+
+// Fonction pour obtenir les statistiques en temps réel
+export function getRealtimeStats() {
+  const totalResponses = demoResponses.length
+
+  // Calculer le nombre de réponses aujourd'hui
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const responsesToday = demoResponses.filter((r) => new Date(r.createdAt) >= today).length
+
+  // Calculer le nombre de réponses cette semaine
+  const startOfWeek = new Date()
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay())
+  startOfWeek.setHours(0, 0, 0, 0)
+  const responsesThisWeek = demoResponses.filter((r) => new Date(r.createdAt) >= startOfWeek).length
+
+  return {
+    totalResponses,
+    responsesToday,
+    responsesThisWeek,
+    lastResponse: demoResponses.length > 0 ? demoResponses[demoResponses.length - 1] : null,
+  }
+}
+
+// Générer un ID unique
+function generateUniqueId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 9)
+}
+
+// Ajouter cette fonction pour générer des données de démonstration
+function generateDemoResponses(): Response[] {
+  const sections = ["SECTION 1", "SECTION 2", "SECTION 3", "SECTION 4"]
+  const satisfactionOptions = ["Oui", "Non"]
+  const difficulteOptions = ["Très difficile", "Difficile", "Facile", "Très facile"]
+  const pedagogieOptions = ["Très bien", "Bien", "Moyen", "Mauvais"]
+  const lieuOptions = ["Très satisfait", "Plutôt satisfait", "Plutôt insatisfait", "Très insatisfait"]
+
+  const demoData: Response[] = []
+
+  // Générer 20 réponses de démonstration
+  for (let i = 0; i < 20; i++) {
+    const date = new Date()
+    date.setDate(date.getDate() - Math.floor(Math.random() * 30)) // Jusqu'à 30 jours dans le passé
+
+    demoData.push({
+      id: `demo-${i + 1}`,
+      session: sections[Math.floor(Math.random() * sections.length)],
+      lieuGlobal: lieuOptions[Math.floor(Math.random() * lieuOptions.length)],
+      lieuAdapte: Math.random() > 0.5 ? "Oui" : "Non",
+      lieuRealite: Math.random() > 0.5 ? "Oui" : "Non",
+      commentaireLieu: Math.random() > 0.7 ? "Commentaire sur le lieu de formation" : "",
+      scenarios: lieuOptions[Math.floor(Math.random() * lieuOptions.length)],
+      misesEnSituation: Math.random() > 0.7 ? "Commentaire sur les mises en situation" : "",
+      difficulte: difficulteOptions[Math.floor(Math.random() * difficulteOptions.length)],
+      evolutionDifficulte: ["Bien équilibré", "Trop difficile", "Trop facile"][Math.floor(Math.random() * 3)],
+      rythme: ["Trop lent", "Correct", "Trop rapide"][Math.floor(Math.random() * 3)],
+      duree: ["Trop court", "Correct", "Trop long"][Math.floor(Math.random() * 3)],
+      attentes: Math.random() > 0.3 ? "Oui" : "Non",
+      pedagogie: pedagogieOptions[Math.floor(Math.random() * pedagogieOptions.length)],
+      qualiteReponses: pedagogieOptions[Math.floor(Math.random() * pedagogieOptions.length)],
+      disponibiliteFormateurs: ["Très disponible", "Disponible", "Peu disponible", "Pas disponible"][
+        Math.floor(Math.random() * 4)
+      ],
+      satisfactionFormation: satisfactionOptions[Math.floor(Math.random() * satisfactionOptions.length)],
+      commentaireLibre: Math.random() > 0.7 ? "Commentaire libre sur la formation" : "",
+      createdAt: date.toISOString(),
+    })
+  }
+
+  return demoData
 }
 

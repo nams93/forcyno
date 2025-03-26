@@ -52,6 +52,7 @@ export function ResponsesTable({ responses }: { responses: Response[] }) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Section</TableHead>
               <TableHead>Lieu</TableHead>
               <TableHead>Scénarios</TableHead>
               <TableHead>Difficulté</TableHead>
@@ -72,6 +73,7 @@ export function ResponsesTable({ responses }: { responses: Response[] }) {
               filteredResponses.map((response) => (
                 <TableRow key={response.id}>
                   <TableCell className="font-medium">{response.id}</TableCell>
+                  <TableCell>{response.session}</TableCell>
                   <TableCell>{response.lieuGlobal}</TableCell>
                   <TableCell>{response.scenarios}</TableCell>
                   <TableCell>{response.difficulte}</TableCell>
