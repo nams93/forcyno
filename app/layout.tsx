@@ -19,6 +19,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-title" content="Satisfaction GPIS" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <script src="/localforage-script.js" defer></script>
       </head>
       <body className={inter.className}>
         {children}

@@ -1,8 +1,8 @@
 {
-  "name": "Formulaire de Satisfaction GPIS",
+  "name": "Formulaire de satisfaction GPIS",
   "short_name": "Satisfaction GPIS",
-  "description": "Application de collecte et d'analyse de satisfaction pour GPIS",
-  "start_url": "/form",
+  "description": "Application de formulaire de satisfaction pour les formations GPIS",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1A3A72",

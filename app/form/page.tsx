@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { SatisfactionForm } from "@/components/satisfaction-form"
 import { useToast } from "@/components/ui/use-toast"
 import { v4 as uuidv4 } from "uuid"
+import { Button } from "@/components/ui/button"
 
 export default function FormPage() {
   const [submitted, setSubmitted] = useState(false)
@@ -12,6 +13,8 @@ export default function FormPage() {
   const [isOnline, setIsOnline] = useState(true)
   const [pendingResponses, setPendingResponses] = useState<any[]>([])
   const initialized = useRef(false)
+  const [formSubmittedEvent, setFormSubmittedEvent] = useState(() => new Event("formSubmitted"))
+  const [redirectToHome, setRedirectToHome] = useState(false) // State for redirection
 
   // Générer un ID de session unique pour suivre cet utilisateur
   useEffect(() => {
@@ -31,12 +34,13 @@ export default function FormPage() {
     // Enregistrer la connexion
     const registerConnection = async () => {
       try {
-        const response = await fetch("/api/register-connection", {
+        const response = await fetch("/api/active-connections", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            action: "register",
             sessionId: newSessionId,
             timestamp: new Date().toISOString(),
             userAgent: navigator.userAgent,
@@ -75,12 +79,15 @@ export default function FormPage() {
     // Nettoyer à la fermeture
     return () => {
       // Enregistrer la déconnexion si possible
-      fetch("/api/unregister-connection", {
+      fetch("/api/active-connections", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sessionId: newSessionId }),
+        body: JSON.stringify({
+          action: "unregister",
+          sessionId: newSessionId,
+        }),
       }).catch(() => {
         // Ignorer les erreurs de déconnexion
       })
@@ -156,7 +163,7 @@ export default function FormPage() {
 
   const handleSubmit = async (data: any) => {
     // Ajouter l'ID de session aux données
-    const responseData = {
+    const formData = {
       ...data,
       sessionId,
       timestamp: new Date().toISOString(),
@@ -170,17 +177,37 @@ export default function FormPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(responseData),
+          body: JSON.stringify(formData),
         })
 
         if (!response.ok) {
           throw new Error("Erreur lors de l'envoi de la réponse")
         }
+
+        // Déclencher un événement personnalisé pour mettre à jour les statistiques
+        window.dispatchEvent(formSubmittedEvent)
+
+        // Mettre à jour le localStorage pour les composants qui écoutent les changements de stockage
+        const currentResponses = JSON.parse(localStorage.getItem("responses") || "[]")
+        localStorage.setItem("responses", JSON.stringify([...currentResponses, formData]))
       } else {
         // Stocker la réponse localement pour synchronisation ultérieure
-        const updatedResponses = [...pendingResponses, responseData]
+        const updatedResponses = [...pendingResponses, formData]
         setPendingResponses(updatedResponses)
         localStorage.setItem("pendingResponses", JSON.stringify(updatedResponses))
+
+        // Stocker également dans offlineResponses pour les statistiques
+        const offlineResponses = JSON.parse(localStorage.getItem("offlineResponses") || "[]")
+        const offlineData = {
+          ...formData,
+          id: `offline-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          pendingSync: true,
+        }
+        localStorage.setItem("offlineResponses", JSON.stringify([...offlineResponses, offlineData]))
+
+        // Déclencher l'événement de mise à jour
+        window.dispatchEvent(formSubmittedEvent)
       }
 
       // Afficher l'écran de remerciement
@@ -197,9 +224,19 @@ export default function FormPage() {
       console.error("Erreur lors de la soumission:", error)
 
       // Stocker la réponse localement en cas d'erreur
-      const updatedResponses = [...pendingResponses, responseData]
+      const updatedResponses = [...pendingResponses, formData]
       setPendingResponses(updatedResponses)
       localStorage.setItem("pendingResponses", JSON.stringify(updatedResponses))
+
+      // Stocker également dans offlineResponses pour les statistiques
+      const offlineResponses = JSON.parse(localStorage.getItem("offlineResponses") || "[]")
+      const offlineData = {
+        ...formData,
+        id: `error-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        pendingSync: true,
+      }
+      localStorage.setItem("offlineResponses", JSON.stringify([...offlineResponses, offlineData]))
 
       // Afficher l'écran de remerciement quand même
       setSubmitted(true)
@@ -211,6 +248,37 @@ export default function FormPage() {
       })
     }
   }
+
+  useEffect(() => {
+    if (submitted) {
+      const timer = setTimeout(() => {
+        // Enregistrer la déconnexion
+        fetch("/api/active-connections", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "unregister",
+            sessionId,
+          }),
+        }).catch(() => {
+          // Ignorer les erreurs de déconnexion
+        })
+
+        // Rediriger vers la page d'accueil
+        setRedirectToHome(true)
+      }, 30000) // 30 secondes
+
+      return () => clearTimeout(timer)
+    }
+  }, [submitted, sessionId])
+
+  useEffect(() => {
+    if (redirectToHome) {
+      window.location.href = "/"
+    }
+  }, [redirectToHome])
 
   if (submitted) {
     return (
@@ -238,7 +306,12 @@ export default function FormPage() {
                 connecté à Internet.
               </p>
             )}
-            <p className="mt-6 text-sm text-gray-500">Vous pouvez maintenant fermer cette page.</p>
+            <p className="mt-6 text-sm text-gray-500">Vous serez automatiquement redirigé dans 30 secondes.</p>
+            <div className="mt-4">
+              <Button variant="outline" onClick={() => (window.location.href = "/")} className="w-full">
+                Retourner à l'accueil
+              </Button>
+            </div>
           </div>
         </div>
       </div>

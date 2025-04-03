@@ -1,23 +1,26 @@
 import { NextResponse } from "next/server"
-import { getLocalStorage, setLocalStorage } from "@/lib/local-storage"
 
 export async function POST(request: Request) {
   try {
     const { sessionId } = await request.json()
 
-    // Récupérer les connexions actuelles
-    const activeConnections = getLocalStorage("activeConnections") || []
+    // Rediriger vers la nouvelle API
+    const response = await fetch(`${request.url.split("/api/")[0]}/api/active-connections`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "unregister",
+        sessionId,
+      }),
+    })
 
-    // Filtrer pour supprimer la connexion
-    const updatedConnections = activeConnections.filter((conn: any) => conn.sessionId !== sessionId)
-
-    // Enregistrer les connexions mises à jour
-    setLocalStorage("activeConnections", updatedConnections)
-
-    return NextResponse.json({ success: true })
+    const data = await response.json()
+    return NextResponse.json(data)
   } catch (error) {
     console.error("Erreur lors de la déconnexion:", error)
-    return NextResponse.json({ error: "Erreur lors de la déconnexion" }, { status: 500 })
+    return NextResponse.json({ success: false, message: "Erreur lors de la déconnexion" }, { status: 500 })
   }
 }
 

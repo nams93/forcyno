@@ -1,41 +1,29 @@
 import { NextResponse } from "next/server"
-import { getLocalStorage, setLocalStorage } from "@/lib/local-storage"
 
 export async function POST(request: Request) {
   try {
     const data = await request.json()
 
-    // Récupérer les réponses existantes
-    const responses = getLocalStorage("responses") || []
+    // Ici, vous pourriez enregistrer les données dans une base de données
+    // Par exemple avec Prisma, Supabase, Firebase, etc.
 
-    // Ajouter la nouvelle réponse
-    responses.push({
-      ...data,
-      timestamp: data.timestamp || new Date().toISOString(),
+    // Pour l'instant, simulons un enregistrement réussi
+    console.log("Nouvelle réponse reçue:", data)
+
+    // Stocker dans le localStorage côté serveur n'est pas possible
+    // Mais nous pouvons renvoyer les données pour que le client les stocke
+
+    return NextResponse.json({
+      success: true,
+      message: "Réponse enregistrée avec succès",
+      data: data,
     })
-
-    // Enregistrer les réponses mises à jour
-    setLocalStorage("responses", responses)
-
-    // Mettre à jour l'activité de la connexion
-    const activeConnections = getLocalStorage("activeConnections") || []
-    const updatedConnections = activeConnections.map((conn: any) => {
-      if (conn.sessionId === data.sessionId) {
-        return {
-          ...conn,
-          lastActivity: new Date().toISOString(),
-          hasSubmitted: true,
-        }
-      }
-      return conn
-    })
-
-    setLocalStorage("activeConnections", updatedConnections)
-
-    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Erreur lors de l'enregistrement de la réponse:", error)
-    return NextResponse.json({ error: "Erreur lors de l'enregistrement de la réponse" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: "Erreur lors de l'enregistrement de la réponse" },
+      { status: 500 },
+    )
   }
 }
 

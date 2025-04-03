@@ -1,63 +1,57 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/use-toast"
-import { RefreshCw } from "lucide-react"
-
-interface Connection {
-  sessionId: string
-  timestamp: string
-  userAgent: string
-  lastActivity: string
-  hasSubmitted?: boolean
-}
+import { RefreshCcw, UserX, Users } from "lucide-react"
 
 export function ActiveConnections() {
-  const [connections, setConnections] = useState<Connection[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [connections, setConnections] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
   const { toast } = useToast()
 
   const fetchConnections = async () => {
+    setIsLoading(true)
     try {
-      setLoading(true)
       const response = await fetch("/api/active-connections")
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des connexions actives")
-      }
-
       const data = await response.json()
-      setConnections(data.connections || [])
-      setError(null)
+
+      if (data.success) {
+        setConnections(data.connections)
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les connexions actives",
+          variant: "destructive",
+        })
+      }
     } catch (error) {
-      console.error("Erreur:", error)
-      setError("Impossible de récupérer les connexions actives")
+      console.error("Erreur lors de la récupération des connexions:", error)
       toast({
         title: "Erreur",
         description: "Impossible de récupérer les connexions actives",
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
   useEffect(() => {
     fetchConnections()
 
-    // Rafraîchir toutes les 10 secondes
-    const interval = setInterval(fetchConnections, 10000)
+    // Rafraîchir les connexions toutes les 30 secondes
+    const interval = setInterval(fetchConnections, 30000)
 
     return () => clearInterval(interval)
   }, [])
 
-  // Fonction pour formater la date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleString("fr-FR", {
+    return date.toLocaleDateString("fr-FR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -66,82 +60,148 @@ export function ActiveConnections() {
     })
   }
 
-  // Fonction pour calculer le temps écoulé depuis la dernière activité
-  const getTimeSinceLastActivity = (lastActivity: string) => {
-    const lastActivityTime = new Date(lastActivity).getTime()
-    const now = Date.now()
-    const diffInMinutes = Math.floor((now - lastActivityTime) / (1000 * 60))
+  const disconnectUser = async (sessionId: string) => {
+    try {
+      const response = await fetch("/api/active-connections", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "unregister",
+          sessionId,
+        }),
+      })
 
-    if (diffInMinutes < 1) return "À l'instant"
-    if (diffInMinutes === 1) return "Il y a 1 minute"
-    if (diffInMinutes < 60) return `Il y a ${diffInMinutes} minutes`
+      const data = await response.json()
 
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours === 1) return "Il y a 1 heure"
-    return `Il y a ${diffInHours} heures`
+      if (data.success) {
+        toast({
+          title: "Succès",
+          description: "L'utilisateur a été déconnecté",
+        })
+
+        // Mettre à jour la liste des connexions
+        setConnections(connections.filter((conn) => conn.sessionId !== sessionId))
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de déconnecter l'utilisateur",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de déconnecter l'utilisateur",
+        variant: "destructive",
+      })
+    }
   }
 
-  // Fonction pour déterminer le type d'appareil
-  const getDeviceType = (userAgent: string) => {
-    const ua = userAgent.toLowerCase()
-    if (ua.includes("mobile")) return "Mobile"
-    if (ua.includes("tablet")) return "Tablette"
-    return "Ordinateur"
+  const disconnectAllUsers = async () => {
+    setIsDisconnecting(true)
+    try {
+      const response = await fetch("/api/active-connections", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "unregister_all",
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast({
+          title: "Succès",
+          description: "Tous les utilisateurs ont été déconnectés",
+        })
+
+        // Mettre à jour la liste des connexions
+        setConnections([])
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de déconnecter tous les utilisateurs",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion de tous les utilisateurs:", error)
+      toast({
+        title: "Erreur",
+        description: "Impossible de déconnecter tous les utilisateurs",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDisconnecting(false)
+    }
   }
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Connexions actives</CardTitle>
-          <CardDescription>Utilisateurs actuellement connectés au formulaire</CardDescription>
+          <CardDescription>Gérer les utilisateurs actuellement connectés au formulaire</CardDescription>
         </div>
-        <button onClick={fetchConnections} className="p-2 rounded-full hover:bg-gray-100" title="Rafraîchir">
-          <RefreshCw className="h-4 w-4" />
-        </button>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" onClick={fetchConnections} disabled={isLoading}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Actualiser
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={disconnectAllUsers}
+            disabled={isLoading || isDisconnecting || connections.length === 0}
+          >
+            <UserX className="h-4 w-4 mr-2" />
+            Déconnecter tous
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-800"></div>
+        {isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
           </div>
-        ) : error ? (
-          <div className="text-center py-4 text-red-500">{error}</div>
         ) : connections.length === 0 ? (
-          <div className="text-center py-4 text-gray-500">Aucune connexion active pour le moment</div>
+          <div className="text-center p-8 text-gray-500 flex flex-col items-center">
+            <Users className="h-12 w-12 text-gray-300 mb-2" />
+            <p>Aucune connexion active</p>
+          </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-500">
-                {connections.length} utilisateur{connections.length > 1 ? "s" : ""} actif
-                {connections.length > 1 ? "s" : ""}
-              </p>
-              <Badge variant="outline" className="bg-green-50">
-                {connections.filter((c) => c.hasSubmitted).length} formulaire
-                {connections.filter((c) => c.hasSubmitted).length > 1 ? "s" : ""} soumis
-              </Badge>
-            </div>
-            <div className="divide-y">
-              {connections.map((connection) => (
-                <div key={connection.sessionId} className="py-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{getDeviceType(connection.userAgent)}</span>
-                        {connection.hasSubmitted && (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Formulaire soumis</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500">Connecté depuis {formatDate(connection.timestamp)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Dernière activité:</p>
-                      <p className="text-sm font-medium">{getTimeSinceLastActivity(connection.lastActivity)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID de session</TableHead>
+                  <TableHead>Date de connexion</TableHead>
+                  <TableHead>Navigateur</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {connections.map((connection) => (
+                  <TableRow key={connection.sessionId}>
+                    <TableCell className="font-mono text-xs">{connection.sessionId.substring(0, 8)}...</TableCell>
+                    <TableCell>{formatDate(connection.timestamp)}</TableCell>
+                    <TableCell className="max-w-xs truncate">{connection.userAgent}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm" onClick={() => disconnectUser(connection.sessionId)}>
+                        <UserX className="h-4 w-4 mr-2" />
+                        Déconnecter
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </CardContent>

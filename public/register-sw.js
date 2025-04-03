@@ -1,4 +1,4 @@
-// Vérifier si le service worker est supporté
+// Enregistrement du service worker
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
