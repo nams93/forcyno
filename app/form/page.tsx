@@ -5,6 +5,9 @@ import { SatisfactionForm } from "@/components/satisfaction-form"
 import { useToast } from "@/components/ui/use-toast"
 import { v4 as uuidv4 } from "uuid"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertTriangle } from "lucide-react"
+import Link from "next/link"
 
 export default function FormPage() {
   const [submitted, setSubmitted] = useState(false)
@@ -14,7 +17,24 @@ export default function FormPage() {
   const [pendingResponses, setPendingResponses] = useState<any[]>([])
   const initialized = useRef(false)
   const [formSubmittedEvent, setFormSubmittedEvent] = useState(() => new Event("formSubmitted"))
-  const [redirectToHome, setRedirectToHome] = useState(false) // State for redirection
+  const [redirectToHome, setRedirectToHome] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState<boolean | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Vérifier si le formulaire est ouvert
+  useEffect(() => {
+    const checkFormStatus = () => {
+      const formStatus = localStorage.getItem("form_status")
+      setIsFormOpen(formStatus !== "closed")
+      setIsLoading(false)
+    }
+
+    checkFormStatus()
+
+    // Vérifier périodiquement si le statut du formulaire a changé
+    const interval = setInterval(checkFormStatus, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Générer un ID de session unique pour suivre cet utilisateur
   useEffect(() => {
@@ -279,6 +299,39 @@ export default function FormPage() {
       window.location.href = "/"
     }
   }, [redirectToHome])
+
+  // Afficher un indicateur de chargement pendant la vérification
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900"></div>
+      </div>
+    )
+  }
+
+  // Afficher un message si le formulaire est fermé
+  if (isFormOpen === false) {
+    return (
+      <div className="container mx-auto py-12 px-4 flex justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-amber-500 mb-2" />
+            <CardTitle className="text-2xl">Formulaire temporairement fermé</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-center text-gray-600">
+              Le formulaire de satisfaction n'est pas disponible pour le moment. Veuillez réessayer ultérieurement.
+            </p>
+            <div className="flex justify-center">
+              <Link href="/">
+                <Button>Retour à l'accueil</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (submitted) {
     return (

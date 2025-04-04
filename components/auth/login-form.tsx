@@ -2,91 +2,65 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
 import { Lock } from "lucide-react"
 
 export function LoginForm() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
   const { toast } = useToast()
-  const router = useRouter()
+
+  // Effet pour gérer la redirection après connexion réussie
+  useEffect(() => {
+    if (redirecting) {
+      // Utiliser window.location pour une redirection plus fiable
+      window.location.href = "/dashboard"
+    }
+  }, [redirecting])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Envoyer la requête avec le mot de passe
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ password }),
-      })
+      // Vérification simple côté client
+      if (password === "2/He$@gJr3iwU") {
+        // Stocker un indicateur simple d'authentification
+        localStorage.setItem("auth_status", "authenticated")
+        localStorage.setItem("auth_timestamp", Date.now().toString())
 
-      const data = await response.json()
-
-      if (data.success) {
-        // Stocker le code d'accès
-        localStorage.setItem("dashboard_access", data.accessCode)
-
-        // Rediriger vers le tableau de bord
         toast({
           title: "Connexion réussie",
           description: "Vous êtes maintenant connecté au tableau de bord.",
         })
 
-        // Utiliser une redirection directe
-        window.location.href = "/dashboard"
+        // Déclencher la redirection après un court délai
+        setTimeout(() => {
+          setRedirecting(true)
+        }, 500)
       } else {
-        // Afficher le message d'erreur
         toast({
           title: "Erreur de connexion",
-          description: data.message || "Mot de passe incorrect.",
+          description: "Mot de passe incorrect.",
           variant: "destructive",
         })
+        setIsLoading(false)
       }
     } catch (error) {
       console.error("Erreur lors de la connexion:", error)
-
-      // Solution de secours en cas d'erreur persistante
-      if (password === "2/He$@gJr3iwU") {
-        // Si le mot de passe est correct mais que l'API échoue, autoriser l'accès quand même
-        localStorage.setItem("dashboard_access", "direct_access")
-        toast({
-          title: "Accès direct",
-          description: "Accès accordé via la méthode de secours.",
-        })
-        window.location.href = "/dashboard"
-        return
-      }
-
       toast({
         title: "Erreur de connexion",
         description: "Une erreur est survenue lors de la tentative de connexion.",
         variant: "destructive",
       })
-    } finally {
       setIsLoading(false)
     }
-  }
-
-  // Méthode d'accès direct sans mot de passe (pour dépannage)
-  const handleDirectAccess = () => {
-    localStorage.setItem("dashboard_access", "direct_access")
-    toast({
-      title: "Accès direct",
-      description: "Accès accordé sans authentification (mode temporaire).",
-    })
-    // Utiliser une redirection directe au lieu de router.push
-    window.location.href = "/dashboard"
   }
 
   return (
@@ -115,14 +89,9 @@ export function LoginForm() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Connexion en cours..." : "Se connecter"}
-          </Button>
-
-          {/* Bouton d'accès direct (pour dépannage) */}
-          <Button type="button" variant="outline" className="w-full text-sm" onClick={handleDirectAccess}>
-            Accès temporaire (sans mot de passe)
+        <CardFooter>
+          <Button type="submit" className="w-full" disabled={isLoading || redirecting}>
+            {isLoading ? "Connexion en cours..." : redirecting ? "Redirection..." : "Se connecter"}
           </Button>
         </CardFooter>
       </form>

@@ -2,6 +2,7 @@ import { SatisfactionStats } from "@/components/dashboard/satisfaction-stats"
 import { QRCodeGenerator } from "@/components/dashboard/qr-code-generator"
 import { ExportData } from "@/components/dashboard/export-data"
 import { ActiveConnections } from "@/components/dashboard/active-connections"
+import { FormControl } from "@/components/dashboard/form-control"
 import { LogoutButton } from "@/components/auth/logout-button"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,9 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-6">
+          {/* Ajout du composant de contrôle du formulaire */}
+          <FormControl />
+
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">QR Code du formulaire</h2>
             <p className="text-gray-600 mb-4">Scannez ce QR code pour accéder au formulaire de satisfaction</p>

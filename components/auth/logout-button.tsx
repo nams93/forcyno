@@ -13,8 +13,9 @@ export function LogoutButton({ variant = "ghost", size = "sm" }: LogoutButtonPro
   const { toast } = useToast()
 
   const handleLogout = () => {
-    // Supprimer l'accès au dashboard
-    localStorage.removeItem("dashboard_access")
+    // Supprimer les données d'authentification
+    localStorage.removeItem("auth_status")
+    localStorage.removeItem("auth_timestamp")
 
     // Afficher un toast de confirmation
     toast({
@@ -22,8 +23,10 @@ export function LogoutButton({ variant = "ghost", size = "sm" }: LogoutButtonPro
       description: "Vous avez été déconnecté du tableau de bord.",
     })
 
-    // Rediriger vers la page d'accueil
-    window.location.href = "/"
+    // Rediriger vers la page d'accueil après un court délai
+    setTimeout(() => {
+      window.location.href = "/"
+    }, 500)
   }
 
   return (

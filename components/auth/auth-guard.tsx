@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { PatternLogin } from "@/components/auth/pattern-login"
+import { LoginForm } from "@/components/auth/login-form"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -15,18 +15,40 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { toast } = useToast()
 
   useEffect(() => {
+    // Vérification simple de l'authentification
     const checkAuth = () => {
-      // Vérifier si l'accès au dashboard est autorisé
-      const accessCode = localStorage.getItem("dashboard_access")
+      const authStatus = localStorage.getItem("auth_status")
+      const authTimestamp = localStorage.getItem("auth_timestamp")
 
-      if (accessCode === "pattern_verified") {
+      // Vérifier si l'authentification existe et n'est pas expirée (24 heures)
+      const isValid =
+        authStatus === "authenticated" &&
+        authTimestamp &&
+        Date.now() - Number.parseInt(authTimestamp) < 24 * 60 * 60 * 1000
+
+      if (isValid) {
+        console.log("Authentification valide, affichage du contenu protégé")
         setIsAuthenticated(true)
       } else {
+        // Nettoyer les données d'authentification expirées
+        if (authStatus) {
+          localStorage.removeItem("auth_status")
+          localStorage.removeItem("auth_timestamp")
+
+          toast({
+            title: "Session expirée",
+            description: "Votre session a expiré. Veuillez vous reconnecter.",
+            variant: "destructive",
+          })
+        }
+        console.log("Authentification invalide, affichage du formulaire de connexion")
         setIsAuthenticated(false)
       }
     }
 
-    checkAuth()
+    // Vérifier l'authentification après un court délai pour s'assurer que localStorage est disponible
+    const timer = setTimeout(checkAuth, 100)
+    return () => clearTimeout(timer)
   }, [toast])
 
   // Afficher un indicateur de chargement pendant la vérification
@@ -38,11 +60,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  // Si non authentifié, afficher le formulaire de connexion par pattern
+  // Si non authentifié, afficher le formulaire de connexion
   if (!isAuthenticated) {
     return (
       <div className="flex justify-center items-center min-h-screen p-4 bg-gray-50">
-        <PatternLogin />
+        <LoginForm />
       </div>
     )
   }
