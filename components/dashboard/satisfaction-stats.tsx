@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getLocalStorage } from "@/lib/local-storage"
 import {
   BarChart,
   Bar,
@@ -35,7 +34,9 @@ export function SatisfactionStats() {
   // Fonction pour charger les données
   const loadData = () => {
     // Récupérer les données des réponses
-    const responses = getLocalStorage("responses") || []
+    const responses = localStorage.getItem("dashboard_responses")
+      ? JSON.parse(localStorage.getItem("dashboard_responses") || "[]")
+      : []
 
     // Vérifier s'il y a des réponses hors ligne à intégrer
     let offlineResponses = []
@@ -631,4 +632,3 @@ export function SatisfactionStats() {
     </div>
   )
 }
-

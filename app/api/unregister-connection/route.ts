@@ -23,4 +23,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: "Erreur lors de la déconnexion" }, { status: 500 })
   }
 }
-

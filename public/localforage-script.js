@@ -7,4 +7,3 @@ document.addEventListener("DOMContentLoaded", () => {
   script.referrerPolicy = "no-referrer"
   document.head.appendChild(script)
 })
-

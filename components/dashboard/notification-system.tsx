@@ -34,4 +34,3 @@ export const NotificationSystem = () => {
 
   return null
 }
-

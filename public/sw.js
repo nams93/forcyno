@@ -186,4 +186,3 @@ async function syncPendingRequests() {
     console.error("Erreur lors de la synchronisation des requêtes", error)
   }
 }
-

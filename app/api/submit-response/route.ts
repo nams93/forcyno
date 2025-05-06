@@ -1,22 +1,53 @@
 import { NextResponse } from "next/server"
 
+// Simuler une base de données avec localStorage côté serveur
+let formResponses: any[] = []
+
+// Fonction pour charger les réponses existantes
+const loadResponses = () => {
+  if (typeof window !== "undefined") {
+    const storedResponses = localStorage.getItem("dashboard_responses")
+    if (storedResponses) {
+      try {
+        formResponses = JSON.parse(storedResponses)
+      } catch (e) {
+        console.error("Erreur lors du chargement des réponses:", e)
+      }
+    }
+  }
+}
+
+// Fonction pour sauvegarder les réponses
+const saveResponses = () => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("dashboard_responses", JSON.stringify(formResponses))
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const data = await request.json()
 
-    // Ici, vous pourriez enregistrer les données dans une base de données
-    // Par exemple avec Prisma, Supabase, Firebase, etc.
+    // Charger les réponses existantes
+    loadResponses()
 
-    // Pour l'instant, simulons un enregistrement réussi
-    console.log("Nouvelle réponse reçue:", data)
+    // Ajouter un ID unique et un timestamp
+    const responseData = {
+      ...data,
+      id: `response-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      receivedAt: new Date().toISOString(),
+    }
 
-    // Stocker dans le localStorage côté serveur n'est pas possible
-    // Mais nous pouvons renvoyer les données pour que le client les stocke
+    // Ajouter la nouvelle réponse
+    formResponses.push(responseData)
+
+    // Sauvegarder les réponses
+    saveResponses()
 
     return NextResponse.json({
       success: true,
       message: "Réponse enregistrée avec succès",
-      data: data,
+      data: responseData,
     })
   } catch (error) {
     console.error("Erreur lors de l'enregistrement de la réponse:", error)
@@ -27,3 +58,12 @@ export async function POST(request: Request) {
   }
 }
 
+// Endpoint pour récupérer toutes les réponses
+export async function GET() {
+  loadResponses()
+
+  return NextResponse.json({
+    success: true,
+    responses: formResponses,
+  })
+}

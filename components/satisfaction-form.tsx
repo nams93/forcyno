@@ -172,6 +172,21 @@ export function SatisfactionForm({ onSubmit }: SatisfactionFormProps) {
       } else {
         // Envoyer normalement
         await onSubmit(formData)
+
+        // Stocker également dans le localStorage du dashboard
+        const dashboardResponses = localStorage.getItem("dashboard_responses")
+          ? JSON.parse(localStorage.getItem("dashboard_responses") || "[]")
+          : []
+
+        dashboardResponses.push({
+          ...formData,
+          id: `response-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        })
+
+        localStorage.setItem("dashboard_responses", JSON.stringify(dashboardResponses))
+
+        // Déclencher un événement pour mettre à jour les statistiques
+        window.dispatchEvent(new Event("formSubmitted"))
       }
     } catch (error) {
       console.error("Erreur lors de la soumission du formulaire:", error)
@@ -733,4 +748,3 @@ export function SatisfactionForm({ onSubmit }: SatisfactionFormProps) {
     </form>
   )
 }
-

@@ -66,4 +66,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, message: "Erreur lors de la gestion des connexions" }, { status: 500 })
   }
 }
-

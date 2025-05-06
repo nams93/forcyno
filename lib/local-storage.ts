@@ -42,4 +42,3 @@ export function removeLocalStorage(key: string): boolean {
     return false
   }
 }
-
