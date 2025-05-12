@@ -12,9 +12,10 @@ import { useToast } from "@/components/ui/use-toast"
 
 interface SatisfactionFormProps {
   onSubmit: (data: any) => void
+  onSectionChange?: (section: string) => void
 }
 
-export function SatisfactionForm({ onSubmit }: SatisfactionFormProps) {
+export function SatisfactionForm({ onSubmit, onSectionChange }: SatisfactionFormProps) {
   // Lieux de la formation
   const [lieuGlobal, setLieuGlobal] = useState<string>("")
   const [lieuAdapte, setLieuAdapte] = useState<string>("")
@@ -53,6 +54,13 @@ export function SatisfactionForm({ onSubmit }: SatisfactionFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isOnline, setIsOnline] = useState(true)
   const { toast } = useToast()
+
+  // Notifier le parent lorsque la section change
+  useEffect(() => {
+    if (onSectionChange && session) {
+      onSectionChange(session)
+    }
+  }, [session, onSectionChange])
 
   // Surveiller l'état de la connexion
   useEffect(() => {

@@ -1,17 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/components/ui/use-toast"
-import { RefreshCcw, UserX, Users } from "lucide-react"
+import { RefreshCcw, UserX, Users, Activity, Clock } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export function ActiveConnections() {
   const [connections, setConnections] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDisconnecting, setIsDisconnecting] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   const { toast } = useToast()
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetchConnections = async () => {
     setIsLoading(true)
@@ -20,7 +23,20 @@ export function ActiveConnections() {
       const data = await response.json()
 
       if (data.success) {
-        setConnections(data.connections)
+        // Ajouter un indicateur de temps écoulé depuis la connexion
+        const connectionsWithTime = data.connections.map((conn: any) => {
+          const connTime = new Date(conn.timestamp).getTime()
+          const now = new Date().getTime()
+          const elapsedSeconds = Math.floor((now - connTime) / 1000)
+
+          return {
+            ...conn,
+            elapsedTime: elapsedSeconds,
+            status: conn.lastActivity && now - new Date(conn.lastActivity).getTime() < 60000 ? "active" : "idle",
+          }
+        })
+
+        setConnections(connectionsWithTime)
       } else {
         toast({
           title: "Erreur",
@@ -43,11 +59,17 @@ export function ActiveConnections() {
   useEffect(() => {
     fetchConnections()
 
-    // Rafraîchir les connexions toutes les 30 secondes
-    const interval = setInterval(fetchConnections, 30000)
+    // Configurer l'intervalle de rafraîchissement automatique
+    if (autoRefresh) {
+      intervalRef.current = setInterval(fetchConnections, 5000) // Rafraîchir toutes les 5 secondes
+    }
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [autoRefresh])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -58,6 +80,16 @@ export function ActiveConnections() {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  const formatElapsedTime = (seconds: number) => {
+    if (seconds < 60) {
+      return `${seconds} sec`
+    } else if (seconds < 3600) {
+      return `${Math.floor(seconds / 60)} min`
+    } else {
+      return `${Math.floor(seconds / 3600)} h ${Math.floor((seconds % 3600) / 60)} min`
+    }
   }
 
   const disconnectUser = async (sessionId: string) => {
@@ -142,14 +174,22 @@ export function ActiveConnections() {
     }
   }
 
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(!autoRefresh)
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Connexions actives</CardTitle>
-          <CardDescription>Gérer les utilisateurs actuellement connectés au formulaire</CardDescription>
+          <CardDescription>Utilisateurs actuellement connectés au formulaire</CardDescription>
         </div>
         <div className="flex space-x-2">
+          <Button variant={autoRefresh ? "default" : "outline"} size="sm" onClick={toggleAutoRefresh}>
+            <Activity className="h-4 w-4 mr-2" />
+            {autoRefresh ? "Actualisation auto" : "Actualisation manuelle"}
+          </Button>
           <Button variant="outline" size="sm" onClick={fetchConnections} disabled={isLoading}>
             <RefreshCcw className="h-4 w-4 mr-2" />
             Actualiser
@@ -180,18 +220,37 @@ export function ActiveConnections() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID de session</TableHead>
-                  <TableHead>Date de connexion</TableHead>
-                  <TableHead>Navigateur</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Section</TableHead>
+                  <TableHead>Connexion</TableHead>
+                  <TableHead>Durée</TableHead>
+                  <TableHead>Appareil</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {connections.map((connection) => (
                   <TableRow key={connection.sessionId}>
-                    <TableCell className="font-mono text-xs">{connection.sessionId.substring(0, 8)}...</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={connection.status === "active" ? "default" : "secondary"}
+                        className="flex items-center gap-1"
+                      >
+                        <span
+                          className={`h-2 w-2 rounded-full ${connection.status === "active" ? "bg-green-500" : "bg-gray-400"}`}
+                        ></span>
+                        {connection.status === "active" ? "Actif" : "Inactif"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{connection.section || "Non spécifiée"}</TableCell>
                     <TableCell>{formatDate(connection.timestamp)}</TableCell>
-                    <TableCell className="max-w-xs truncate">{connection.userAgent}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1 text-gray-400" />
+                        {formatElapsedTime(connection.elapsedTime)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">{connection.deviceInfo || connection.userAgent}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" onClick={() => disconnectUser(connection.sessionId)}>
                         <UserX className="h-4 w-4 mr-2" />

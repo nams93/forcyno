@@ -7,14 +7,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
-import { Download } from "lucide-react"
+import { Download, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import html2canvas from "html2canvas"
+import jsPDF from "jspdf"
 
 export function ExportData() {
   const [format, setFormat] = useState<string>("csv")
   const [isExporting, setIsExporting] = useState<boolean>(false)
   const [isImporting, setIsImporting] = useState<boolean>(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false)
   const { toast } = useToast()
 
   const exportData = () => {
@@ -203,6 +206,143 @@ export function ExportData() {
     }
   }
 
+  // Nouvelle fonction pour générer un PDF avec les statistiques
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true)
+    toast({
+      title: "Génération du PDF",
+      description: "Préparation du rapport PDF en cours...",
+    })
+
+    try {
+      // Sélectionner les éléments à inclure dans le PDF
+      const statsElement = document.querySelector(".satisfaction-stats-container")
+      if (!statsElement) {
+        throw new Error("Élément de statistiques non trouvé")
+      }
+
+      // Créer un nouveau document PDF
+      const pdf = new jsPDF("p", "mm", "a4")
+
+      // Ajouter un titre
+      pdf.setFontSize(18)
+      pdf.text("Rapport de satisfaction GPIS", 105, 15, { align: "center" })
+      pdf.setFontSize(12)
+      pdf.text(`Généré le ${new Date().toLocaleDateString()}`, 105, 22, { align: "center" })
+
+      // Ajouter une ligne de séparation
+      pdf.setLineWidth(0.5)
+      pdf.line(20, 25, 190, 25)
+
+      // Récupérer les données
+      const responses = JSON.parse(localStorage.getItem("dashboard_responses") || "[]")
+
+      // Ajouter un résumé des données
+      pdf.setFontSize(14)
+      pdf.text("Résumé des données", 20, 35)
+
+      pdf.setFontSize(12)
+      pdf.text(`Nombre total de réponses: ${responses.length}`, 20, 45)
+
+      // Calculer les statistiques de satisfaction
+      const satisfiedCount = responses.filter((r: any) => r.satisfactionFormation === "Oui").length
+      const satisfactionRate = responses.length ? (satisfiedCount / responses.length) * 100 : 0
+
+      pdf.text(`Taux de satisfaction: ${satisfactionRate.toFixed(1)}%`, 20, 52)
+
+      // Sections représentées
+      const sections = [...new Set(responses.map((r: any) => r.session).filter(Boolean))]
+      pdf.text(`Sections représentées: ${sections.join(", ") || "Aucune"}`, 20, 59)
+
+      // Capturer les graphiques
+      let yPosition = 70
+
+      // Capturer chaque graphique individuellement
+      const chartElements = document.querySelectorAll(".recharts-wrapper")
+      for (let i = 0; i < chartElements.length && i < 3; i++) {
+        const canvas = await html2canvas(chartElements[i] as HTMLElement)
+        const imgData = canvas.toDataURL("image/png")
+
+        // Ajouter une nouvelle page si nécessaire
+        if (yPosition > 230) {
+          pdf.addPage()
+          yPosition = 20
+        }
+
+        // Ajouter le graphique au PDF
+        const imgWidth = 170
+        const imgHeight = (canvas.height * imgWidth) / canvas.width
+        pdf.addImage(imgData, "PNG", 20, yPosition, imgWidth, imgHeight)
+
+        yPosition += imgHeight + 15
+      }
+
+      // Ajouter les commentaires récents
+      if (yPosition > 200) {
+        pdf.addPage()
+        yPosition = 20
+      }
+
+      pdf.setFontSize(14)
+      pdf.text("Commentaires récents", 20, yPosition)
+      yPosition += 10
+
+      // Récupérer les 5 derniers commentaires
+      const recentComments = responses
+        .filter((r: any) => r.commentaireLibre && r.commentaireLibre.trim() !== "")
+        .sort(
+          (a: any, b: any) =>
+            new Date(b.timestamp || b.createdAt).getTime() - new Date(a.timestamp || a.createdAt).getTime(),
+        )
+        .slice(0, 5)
+
+      if (recentComments.length > 0) {
+        for (const comment of recentComments) {
+          // Ajouter une nouvelle page si nécessaire
+          if (yPosition > 250) {
+            pdf.addPage()
+            yPosition = 20
+          }
+
+          const date = new Date(comment.timestamp || comment.createdAt).toLocaleDateString()
+          pdf.setFontSize(10)
+          pdf.text(`${date} - Section: ${comment.session || "Non spécifiée"}`, 20, yPosition)
+          yPosition += 5
+
+          pdf.setFontSize(9)
+          // Limiter la longueur du commentaire et le diviser en lignes
+          const commentText =
+            comment.commentaireLibre.substring(0, 300) + (comment.commentaireLibre.length > 300 ? "..." : "")
+          const splitText = pdf.splitTextToSize(commentText, 170)
+          pdf.text(splitText, 20, yPosition)
+
+          yPosition += splitText.length * 5 + 8
+        }
+      } else {
+        pdf.setFontSize(10)
+        pdf.text("Aucun commentaire disponible", 20, yPosition)
+        yPosition += 10
+      }
+
+      // Sauvegarder le PDF
+      pdf.save(`rapport-satisfaction-gpis-${new Date().toISOString().split("T")[0]}.pdf`)
+
+      toast({
+        title: "PDF généré avec succès",
+        description: "Le rapport PDF a été téléchargé",
+      })
+    } catch (error) {
+      console.error("Erreur lors de la génération du PDF:", error)
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la génération du PDF",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -225,16 +365,29 @@ export function ExportData() {
           </Select>
         </div>
 
-        <Button onClick={exportData} disabled={isExporting} className="w-full">
-          {isExporting ? (
-            "Exportation en cours..."
-          ) : (
-            <>
-              <Download className="mr-2 h-4 w-4" />
-              Exporter les données
-            </>
-          )}
-        </Button>
+        <div className="flex flex-col space-y-2">
+          <Button onClick={exportData} disabled={isExporting} className="w-full">
+            {isExporting ? (
+              "Exportation en cours..."
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Exporter les données
+              </>
+            )}
+          </Button>
+
+          <Button onClick={generatePDF} disabled={isGeneratingPDF} className="w-full" variant="outline">
+            {isGeneratingPDF ? (
+              "Génération en cours..."
+            ) : (
+              <>
+                <FileText className="mr-2 h-4 w-4" />
+                Générer un rapport PDF
+              </>
+            )}
+          </Button>
+        </div>
 
         <div className="border-t pt-4">
           <Label htmlFor="import-file" className="block text-sm font-medium mb-2">

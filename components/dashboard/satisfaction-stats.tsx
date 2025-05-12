@@ -232,7 +232,7 @@ export function SatisfactionStats() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 satisfaction-stats-container">
       <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
         <div className="flex items-center space-x-4">
           <label htmlFor="section-filter" className="text-sm font-medium">

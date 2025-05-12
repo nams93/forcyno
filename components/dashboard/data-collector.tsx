@@ -10,6 +10,8 @@ export function DataCollector() {
   // Fonction pour collecter les données des utilisateurs
   const collectData = async () => {
     try {
+      if (typeof window === "undefined") return
+
       // Récupérer les données du localStorage
       const dashboardResponses = localStorage.getItem("dashboard_responses")
         ? JSON.parse(localStorage.getItem("dashboard_responses") || "[]")
@@ -48,6 +50,8 @@ export function DataCollector() {
 
   // Collecter les données au chargement et périodiquement
   useEffect(() => {
+    if (typeof window === "undefined") return
+
     // Collecter les données immédiatement
     collectData()
 

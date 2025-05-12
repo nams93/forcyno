@@ -1,35 +1,11 @@
 import { NextResponse } from "next/server"
 
-// Simuler une base de données avec localStorage côté serveur
-let formResponses: any[] = []
-
-// Fonction pour charger les réponses existantes
-const loadResponses = () => {
-  if (typeof window !== "undefined") {
-    const storedResponses = localStorage.getItem("dashboard_responses")
-    if (storedResponses) {
-      try {
-        formResponses = JSON.parse(storedResponses)
-      } catch (e) {
-        console.error("Erreur lors du chargement des réponses:", e)
-      }
-    }
-  }
-}
-
-// Fonction pour sauvegarder les réponses
-const saveResponses = () => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("dashboard_responses", JSON.stringify(formResponses))
-  }
-}
+// Simuler une base de données avec un tableau côté serveur
+const formResponses: any[] = []
 
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-
-    // Charger les réponses existantes
-    loadResponses()
 
     // Ajouter un ID unique et un timestamp
     const responseData = {
@@ -40,9 +16,6 @@ export async function POST(request: Request) {
 
     // Ajouter la nouvelle réponse
     formResponses.push(responseData)
-
-    // Sauvegarder les réponses
-    saveResponses()
 
     return NextResponse.json({
       success: true,
@@ -60,8 +33,6 @@ export async function POST(request: Request) {
 
 // Endpoint pour récupérer toutes les réponses
 export async function GET() {
-  loadResponses()
-
   return NextResponse.json({
     success: true,
     responses: formResponses,

@@ -13,8 +13,17 @@ export default function FormPage() {
   const [isOnline, setIsOnline] = useState(true)
   const [pendingResponses, setPendingResponses] = useState<any[]>([])
   const initialized = useRef(false)
-  const [formSubmittedEvent, setFormSubmittedEvent] = useState(() => new Event("formSubmitted"))
+  const [formSubmittedEvent, setFormSubmittedEvent] = useState<Event | null>(null)
   const [redirectToHome, setRedirectToHome] = useState(false) // State for redirection
+  const activityInterval = useRef<NodeJS.Timeout | null>(null)
+  const [section, setSection] = useState<string>("")
+
+  // Créer l'événement une seule fois après le montage du composant
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setFormSubmittedEvent(new Event("formSubmitted"))
+    }
+  }, [])
 
   // Générer un ID de session unique pour suivre cet utilisateur
   useEffect(() => {
@@ -28,7 +37,33 @@ export default function FormPage() {
     // Récupérer les réponses en attente du localStorage
     const storedResponses = localStorage.getItem("pendingResponses")
     if (storedResponses) {
-      setPendingResponses(JSON.parse(storedResponses))
+      try {
+        setPendingResponses(JSON.parse(storedResponses))
+      } catch (e) {
+        console.error("Erreur lors de la récupération des réponses en attente:", e)
+      }
+    }
+
+    // Détecter le type d'appareil
+    const getDeviceInfo = () => {
+      const userAgent = navigator.userAgent
+      let deviceInfo = "Ordinateur"
+
+      if (/Android/i.test(userAgent)) {
+        deviceInfo = "Android"
+      } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+        deviceInfo = "iOS"
+      } else if (/Windows Phone/i.test(userAgent)) {
+        deviceInfo = "Windows Phone"
+      } else if (/Windows/i.test(userAgent)) {
+        deviceInfo = "Windows"
+      } else if (/Macintosh/i.test(userAgent)) {
+        deviceInfo = "Mac"
+      } else if (/Linux/i.test(userAgent)) {
+        deviceInfo = "Linux"
+      }
+
+      return deviceInfo
     }
 
     // Enregistrer la connexion
@@ -43,7 +78,7 @@ export default function FormPage() {
             action: "register",
             sessionId: newSessionId,
             timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent,
+            deviceInfo: getDeviceInfo(),
             online: navigator.onLine,
           }),
         })
@@ -54,6 +89,7 @@ export default function FormPage() {
             sessionId: newSessionId,
             timestamp: new Date().toISOString(),
             userAgent: navigator.userAgent,
+            deviceInfo: getDeviceInfo(),
             type: "connection",
           }
           const updatedResponses = [...pendingResponses, connectionData]
@@ -66,6 +102,7 @@ export default function FormPage() {
           sessionId: newSessionId,
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
+          deviceInfo: getDeviceInfo(),
           type: "connection",
         }
         const updatedResponses = [...pendingResponses, connectionData]
@@ -76,23 +113,75 @@ export default function FormPage() {
 
     registerConnection()
 
+    // Configurer l'intervalle pour envoyer des mises à jour d'activité
+    activityInterval.current = setInterval(() => {
+      if (navigator.onLine) {
+        fetch("/api/active-connections", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "update_activity",
+            sessionId: newSessionId,
+            section: section,
+            lastActivity: new Date().toISOString(),
+          }),
+        }).catch((err) => console.error("Erreur lors de la mise à jour de l'activité:", err))
+      }
+    }, 30000) // Toutes les 30 secondes
+
     // Nettoyer à la fermeture
     return () => {
+      // Nettoyer l'intervalle d'activité
+      if (activityInterval.current) {
+        clearInterval(activityInterval.current)
+      }
+
       // Enregistrer la déconnexion si possible
+      if (typeof window !== "undefined" && navigator.onLine) {
+        // Utiliser sendBeacon pour une déconnexion plus fiable lors de la fermeture de la page
+        const data = JSON.stringify({
+          action: "unregister",
+          sessionId: newSessionId,
+        })
+
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon("/api/active-connections", data)
+        } else {
+          // Fallback si sendBeacon n'est pas disponible
+          fetch("/api/active-connections", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: data,
+            keepalive: true,
+          }).catch(() => {
+            // Ignorer les erreurs de déconnexion
+          })
+        }
+      }
+    }
+  }, [])
+
+  // Mettre à jour la section lorsqu'elle change
+  useEffect(() => {
+    if (sessionId && section && navigator.onLine) {
       fetch("/api/active-connections", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: "unregister",
-          sessionId: newSessionId,
+          action: "update_activity",
+          sessionId,
+          section,
+          lastActivity: new Date().toISOString(),
         }),
-      }).catch(() => {
-        // Ignorer les erreurs de déconnexion
-      })
+      }).catch((err) => console.error("Erreur lors de la mise à jour de la section:", err))
     }
-  }, [])
+  }, [sessionId, section])
 
   // Surveiller l'état de la connexion
   useEffect(() => {
@@ -162,6 +251,11 @@ export default function FormPage() {
   }
 
   const handleSubmit = async (data: any) => {
+    // Mettre à jour la section
+    if (data.session) {
+      setSection(data.session)
+    }
+
     // Ajouter l'ID de session aux données
     const formData = {
       ...data,
@@ -185,7 +279,9 @@ export default function FormPage() {
         }
 
         // Déclencher un événement personnalisé pour mettre à jour les statistiques
-        window.dispatchEvent(formSubmittedEvent)
+        if (formSubmittedEvent && typeof window !== "undefined") {
+          window.dispatchEvent(formSubmittedEvent)
+        }
 
         // Mettre à jour le localStorage pour les composants qui écoutent les changements de stockage
         const currentResponses = JSON.parse(localStorage.getItem("responses") || "[]")
@@ -207,7 +303,9 @@ export default function FormPage() {
         localStorage.setItem("offlineResponses", JSON.stringify([...offlineResponses, offlineData]))
 
         // Déclencher l'événement de mise à jour
-        window.dispatchEvent(formSubmittedEvent)
+        if (formSubmittedEvent && typeof window !== "undefined") {
+          window.dispatchEvent(formSubmittedEvent)
+        }
       }
 
       // Afficher l'écran de remerciement
@@ -253,18 +351,20 @@ export default function FormPage() {
     if (submitted) {
       const timer = setTimeout(() => {
         // Enregistrer la déconnexion
-        fetch("/api/active-connections", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            action: "unregister",
-            sessionId,
-          }),
-        }).catch(() => {
-          // Ignorer les erreurs de déconnexion
-        })
+        if (navigator.onLine) {
+          fetch("/api/active-connections", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "unregister",
+              sessionId,
+            }),
+          }).catch(() => {
+            // Ignorer les erreurs de déconnexion
+          })
+        }
 
         // Rediriger vers la page d'accueil
         setRedirectToHome(true)
@@ -333,7 +433,7 @@ export default function FormPage() {
             </div>
           )}
         </div>
-        <SatisfactionForm onSubmit={handleSubmit} />
+        <SatisfactionForm onSubmit={handleSubmit} onSectionChange={setSection} />
       </div>
     </div>
   )

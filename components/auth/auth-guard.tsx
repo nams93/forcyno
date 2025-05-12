@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { PatternLogin } from "@/components/auth/pattern-login"
+import { PinLogin } from "@/components/auth/pin-login"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -19,7 +19,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
       // Vérifier si l'accès au dashboard est autorisé
       const accessCode = localStorage.getItem("dashboard_access")
 
-      if (accessCode === "pattern_verified") {
+      if (accessCode === "pin_verified" || accessCode === "direct_access") {
         setIsAuthenticated(true)
       } else {
         setIsAuthenticated(false)
@@ -38,11 +38,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
     )
   }
 
-  // Si non authentifié, afficher le formulaire de connexion par pattern
+  // Si non authentifié, afficher le formulaire de connexion par code PIN
   if (!isAuthenticated) {
     return (
       <div className="flex justify-center items-center min-h-screen p-4 bg-gray-50">
-        <PatternLogin />
+        <PinLogin />
       </div>
     )
   }
